@@ -31,7 +31,7 @@ class BotoStorageHandler(FileStorageInterface):
                 config=None)
 
         except KeyError as e:
-            logging.error("Missing parameter in file storage config %s" % str(e))
+            logging.error(f"Missing parameter in file storage config {str(e)}")
 
     def download_file(self, bucket_name, object_name, file_path, *args, **kwargs):
         """
@@ -79,7 +79,7 @@ class BotoStorageHandler(FileStorageInterface):
                 all_files = self.botoClient.list_objects_v2(Bucket=bucket_name, Prefix=prefix, StartAfter=start_after)[
                     'Contents']
 
-                for index, f in enumerate(all_files):
+                for f in all_files:
                     file_name = f["Key"]
                     all_file_names.append(file_name)
 

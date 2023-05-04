@@ -40,7 +40,7 @@ class _AutoMLPandas(_AutoMLBase):
             raise AutoMLException("ERROR: model family not supported.")
 
         for data in [train, kwargs['y_train'], test, kwargs['y_test']]:
-            if not (isinstance(data, pd.DataFrame) or isinstance(data, pd.Series) or isinstance(data, np.ndarray)):
+            if not (isinstance(data, (pd.DataFrame, pd.Series, np.ndarray))):
                 raise AutoMLException("ERROR: data type should be Pandas Series/Dataframe or Numpy ndarray.")
 
         if train.shape[0] <= 1:
@@ -159,13 +159,21 @@ class _AutoMLPandas(_AutoMLBase):
 
     def _calc_cv_df(self, searches, key, cv_weights):
         # get splits
-        splits = list(filter(lambda x: True if all(word in x for word in ['split', 'test_score']) else False,
-                             searches[key].cv_results_.keys()))
+        splits = list(
+            filter(
+                lambda x: all((word in x for word in ['split', 'test_score'])),
+                searches[key].cv_results_.keys(),
+            )
+        )
         splits_df = pd.DataFrame(np.transpose([searches[key].cv_results_[x] for x in splits]), columns=splits)
 
         # create column for each hyper param
-        hyper_params_attr = list(filter(
-            lambda x: True if all(word in x for word in ['param_']) else False, searches[key].cv_results_.keys()))
+        hyper_params_attr = list(
+            filter(
+                lambda x: all((word in x for word in ['param_'])),
+                searches[key].cv_results_.keys(),
+            )
+        )
         cv_results = pd.DataFrame()
         for column_name in hyper_params_attr:
             cv_results[column_name] = searches[key].cv_results_[column_name]
@@ -203,11 +211,11 @@ class _AutoMLPandas(_AutoMLBase):
 
         # get cv results df
         df = pd.concat([self._calc_cv_df(searches, key, kwargs['cv_weights']) for key in searches.keys()], sort=False)\
-            .sort_values(by=sort_by, ascending=False)
+                .sort_values(by=sort_by, ascending=False)
 
         # reorder columns
         columns = ['estimator', 'min_score', 'mean_score', 'weighted_mean_score', 'max_score', 'std_score']
-        columns = columns + [c for c in df.columns if c not in columns]
+        columns += [c for c in df.columns if c not in columns]
         df = df[columns]
 
         # fetch first row results => best result
@@ -245,21 +253,23 @@ class _AutoMLPandas(_AutoMLBase):
         return selected_features, train[selected_features], test[selected_features]
 
     def _get_scorer(self, estimator_family, metric=None, *args, **kwargs):
-        if metric:
-            if callable(metric):
-                if isinstance(metric, _BaseScorer):
-                    return metric
-                else:
-                    return make_scorer(metric, greater_is_better=kwargs.get('greater_is_better', True))
-            else:
-                return make_scorer(globals()[metric], greater_is_better=kwargs.get('greater_is_better', True))
-        else:
+        if not metric:
             return {
                 'linear': make_scorer(mean_squared_error, greater_is_better=False),
                 'non_linear': make_scorer(mean_squared_error, greater_is_better=False),
                 'multi_class': make_scorer(f1_score, average='weighted'),
                 'binary': make_scorer(f1_score, average='binary')
             }.get(estimator_family)
+        if callable(metric):
+            return (
+                metric
+                if isinstance(metric, _BaseScorer)
+                else make_scorer(
+                    metric, greater_is_better=kwargs.get('greater_is_better', True)
+                )
+            )
+        else:
+            return make_scorer(globals()[metric], greater_is_better=kwargs.get('greater_is_better', True))
 
     def _scores_function(self, scores_summary_func, estimator_family):
         # take scores summary by 'scores_summary' then by 'best_estimator'

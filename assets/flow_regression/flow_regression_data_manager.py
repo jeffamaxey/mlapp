@@ -33,29 +33,27 @@ class FlowRegressionDataManager(DataManager):
         for model_output in models_outputs:
             index = self.data_settings.get('data_index')
             res = model_output.get(df_name, pd.DataFrame(columns=index))
-            if len(res) > 0:
-                df = res[0]
-                # df.set_index(self.data_settings.get('data_index'))
-                data = pd.concat([data, df])
-            else:
+            if len(res) <= 0:
                 continue
+            df = res[0]
+            # df.set_index(self.data_settings.get('data_index'))
+            data = pd.concat([data, df])
         for feature_name in self.data_settings.get('flow_return_features'):
             features[feature_name] = []
             for model_output in models_outputs:
                 feature_data = model_output.get(feature_name, pd.DataFrame(columns=index))
-                if len(feature_data)>0:
-                    if isinstance(feature_data, pd.DataFrame):
-                        if not isinstance(features[feature_name], pd.DataFrame):
-                            features[feature_name]=pd.DataFrame()
-                        features[feature_name] = pd.concat([feature_data, features[feature_name]])
-                    else:
-                        # assume it is a list
-                        features[feature_name].append(feature_data)
-                else:
+                if len(feature_data) <= 0:
                     continue
 
-        for key in features:
-            self.save_metadata(key, features[key])
+                if isinstance(feature_data, pd.DataFrame):
+                    if not isinstance(features[feature_name], pd.DataFrame):
+                        features[feature_name]=pd.DataFrame()
+                    features[feature_name] = pd.concat([feature_data, features[feature_name]])
+                else:
+                    # assume it is a list
+                    features[feature_name].append(feature_data)
+        for key, value in features.items():
+            self.save_metadata(key, value)
 
         return data
 
@@ -69,9 +67,9 @@ class FlowRegressionDataManager(DataManager):
         data.reset_index(inplace=True)
         agg_function = self.data_settings['data_handling'].get('agg_function_dataframe')
         values = self.data_settings['data_handling'].get('agg_on_columns')
-        predictions_pivoted = pd.pivot_table(data, index=index, values=values, aggfunc=eval(agg_function))
-
-        return predictions_pivoted
+        return pd.pivot_table(
+            data, index=index, values=values, aggfunc=eval(agg_function)
+        )
 
     @pipeline
     def load_target_data(self, *args):

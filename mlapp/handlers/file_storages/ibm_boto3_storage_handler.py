@@ -25,7 +25,7 @@ class IBMBoto3StorageHandler(FileStorageInterface):
                                                endpoint_url=configuration['endpoint'])
 
         except KeyError as e:
-            logging.error("Missing parameter in file storage config %s" % str(e))
+            logging.error(f"Missing parameter in file storage config {str(e)}")
 
     def download_file(self, bucket_name, object_name, file_path, *args, **kwargs):
         """
@@ -66,10 +66,7 @@ class IBMBoto3StorageHandler(FileStorageInterface):
         :param kwargs: other keyword arguments containing additional information
         """
         try:
-            files_names = []
             response = self.botoClient.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-            for file in response['Contents']:
-                files_names.append(file['Key'])
-            return files_names
+            return [file['Key'] for file in response['Contents']]
         except Exception as e:
             logging.error(e)

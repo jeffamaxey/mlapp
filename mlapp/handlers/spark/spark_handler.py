@@ -11,7 +11,7 @@ class SparkHandler(SparkInterface):
         :param settings: settings from `mlapp > config.py` depending on handler type name.
         """
         conf = SparkConf()
-        settings = {key: value for (key, value) in settings.items() if not value == ""}
+        settings = {key: value for (key, value) in settings.items() if value != ""}
         conf.setAll(settings.items())
         if settings.get("enable_hive", False):
             self.spark = SparkSession.builder.config(conf=conf).enableHiveSupport().getOrCreate()
@@ -31,8 +31,8 @@ class SparkHandler(SparkInterface):
         self.database_options = self.spark_settings.get('database_options')
         self.url = None
         if self.driver is not None and self.connector_type is not None and self.db_type is not None and \
-           self.hostname is not None and self.port is not None and self.username is not None and \
-           self.password is not None and self.database_name is not None and self.database_options is not None:
+               self.hostname is not None and self.port is not None and self.username is not None and \
+               self.password is not None and self.database_name is not None and self.database_options is not None:
             self.__generate_url__()
 
     # def __del__(self):
@@ -78,8 +78,10 @@ class SparkHandler(SparkInterface):
             exec(module)
             return eval(model_class_name).load(file_path)
         except Exception as e:
-            print(str(e))
-            raise Exception("Missing import of `{}` in `spark_db_handler.py`!".format(model_class_name + 'Model'))
+            print(e)
+            raise Exception(
+                f"Missing import of `{model_class_name}Model` in `spark_db_handler.py`!"
+            )
 
     def exec_query(self, query, params=None, **kwargs):
         """

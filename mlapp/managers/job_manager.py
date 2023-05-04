@@ -157,7 +157,7 @@ class JobManager(object):
         :param name: file name
         :return: proper concatenation of the file name
         """
-        return str(run_id) + '_' + self.identity['asset_name'] + '_' + name
+        return f'{str(run_id)}_' + self.identity['asset_name'] + '_' + name
 
     def get_dataframe_filename(self, run_id, df_name):
         """
@@ -165,27 +165,33 @@ class JobManager(object):
         :param df_name: dataframe name
         :return: proper concatenation of the dataframe file name
         """
-        return str(run_id) + '_' + self.identity['asset_name'] + self.DOT + df_name + '.csv'
+        return (
+            f'{str(run_id)}_'
+            + self.identity['asset_name']
+            + self.DOT
+            + df_name
+            + '.csv'
+        )
 
     def get_config_filename(self, run_id):
         """
         :param run_id: unique id of the asset
         :return: proper concatenation of the config file name
         """
-        return str(run_id) + '_' + self.identity['asset_name'] + '.config.json'
+        return f'{str(run_id)}_' + self.identity['asset_name'] + '.config.json'
 
     def get_job_config_filename(self):
         """
         :return: proper concatenation of the config file name
         """
-        return str(self.job_id) + '.config.json'
+        return f'{str(self.job_id)}.config.json'
 
     def get_metadata_filename(self, run_id):
         """
         :param run_id: unique id of the asset
         :return: proper concatenation of the metadata file name
         """
-        return str(run_id) + '_' + self.identity['asset_name'] + '.metadata.json'
+        return f'{str(run_id)}_' + self.identity['asset_name'] + '.metadata.json'
 
     @staticmethod
     def get_flow_metadata_filename(run_id):
@@ -193,14 +199,14 @@ class JobManager(object):
         :param run_id:  unique id of the asset
         :return: proper concatenation of the flow-summary-asset metadata file name
         """
-        return str(run_id) + '_flow_summary.metadata.json'
+        return f'{str(run_id)}_flow_summary.metadata.json'
 
     def get_features_filename(self, run_id):
         """
         :param run_id: unique id of the asset
         :return: proper concatenation of the feature file name
         """
-        return str(run_id) + '_' + self.identity['asset_name'] + '.features.csv'
+        return f'{str(run_id)}_' + self.identity['asset_name'] + '.features.csv'
 
     def get_objects_filename(self, run_id, manager, mlapp_type, file_type, model_name=None, class_name=None):
         """
@@ -213,24 +219,100 @@ class JobManager(object):
         :return: proper concatenation of the object file name
         """
         if model_name is None and class_name is None:
-            return str(run_id) + '_' + self.identity['asset_name'] + \
-                   self.DOT + manager + self.DOT + mlapp_type + self.DOT + file_type
+            return (
+                (
+                    (
+                        (
+                            (
+                                f'{str(run_id)}_'
+                                + self.identity['asset_name']
+                                + self.DOT
+                            )
+                            + manager
+                        )
+                        + self.DOT
+                    )
+                    + mlapp_type
+                )
+                + self.DOT
+            ) + file_type
         elif class_name is None:
-            return str(run_id) + '_' + self.identity['asset_name'] + self.DOT + model_name + \
-                   self.DOT + manager + self.DOT + mlapp_type + self.DOT + file_type
+            return (
+                (
+                    (
+                        (
+                            (
+                                f'{str(run_id)}_'
+                                + self.identity['asset_name']
+                                + self.DOT
+                                + model_name
+                                + self.DOT
+                            )
+                            + manager
+                        )
+                        + self.DOT
+                    )
+                    + mlapp_type
+                )
+                + self.DOT
+            ) + file_type
         elif model_name is None:
-            return str(run_id) + '_' + self.identity['asset_name'] + self.DOT + class_name + \
-                   self.DOT + manager + self.DOT + mlapp_type + self.DOT + file_type
+            return (
+                (
+                    (
+                        (
+                            (
+                                f'{str(run_id)}_'
+                                + self.identity['asset_name']
+                                + self.DOT
+                                + class_name
+                                + self.DOT
+                            )
+                            + manager
+                        )
+                        + self.DOT
+                    )
+                    + mlapp_type
+                )
+                + self.DOT
+            ) + file_type
         else:
-            return str(run_id) + '_' + self.identity['asset_name'] + self.DOT + class_name + \
-                   self.DOT + model_name + self.DOT + manager + self.DOT + mlapp_type + self.DOT + file_type
+            return (
+                (
+                    (
+                        (
+                            (
+                                (
+                                    (
+                                        f'{str(run_id)}_'
+                                        + self.identity['asset_name']
+                                        + self.DOT
+                                        + class_name
+                                        + self.DOT
+                                    )
+                                    + model_name
+                                )
+                                + self.DOT
+                            )
+                            + manager
+                        )
+                        + self.DOT
+                    )
+                    + mlapp_type
+                )
+                + self.DOT
+            ) + file_type
 
     def get_objects_modules_filename(self, run_id):
         """
         :param run_id: string, unique id of the asset
         :return: proper concatenation of the object modules json file name
         """
-        return str(run_id) + '_' + self.identity['asset_name'] + '.objects.modules.json'
+        return (
+            f'{str(run_id)}_'
+            + self.identity['asset_name']
+            + '.objects.modules.json'
+        )
 
     def get_logger_filename(self, run_id=None):
         """
@@ -238,9 +320,9 @@ class JobManager(object):
         :return: proper concatenation of the logger file name
         """
         if run_id is not None:
-            return str(run_id) + '_' + str(self.job_id) + '.logger.txt'
+            return f'{str(run_id)}_{str(self.job_id)}.logger.txt'
         else:
-            return str(self.job_id) + '.logger.txt'
+            return f'{str(self.job_id)}.logger.txt'
 
     def get_asset_name(self, has_flow_summary):
         """
@@ -249,19 +331,17 @@ class JobManager(object):
         """
         if has_flow_summary is not None and not has_flow_summary:
             return None
-        else:
-            asset_name = self.job_settings.get('asset_name', None)
+        asset_name = self.job_settings.get('asset_name', None)
+        if asset_name is None:
+            #  model_name deprecation
+            asset_name = self.job_settings.get('model_name', None)
             if asset_name is None:
-                #  model_name deprecation
-                asset_name = self.job_settings.get('model_name', None)
-                if asset_name is None:
-                    raise ConfigKeyError('asset_name is required in job_settings config.')
-                else:
-                    try:
-                        raise DeprecationWarning('model_name is deprecated please use asset_name instead.')
-                    except Warning as w:
-                        print("DeprecationWarning: " + str(w))
-            return asset_name
+                raise ConfigKeyError('asset_name is required in job_settings config.')
+            try:
+                raise DeprecationWarning('model_name is deprecated please use asset_name instead.')
+            except Warning as w:
+                print(f"DeprecationWarning: {str(w)}")
+        return asset_name
 
     ###############################################################
     #                                                             #
@@ -340,17 +420,16 @@ class JobManager(object):
         @param config_model_id: string
         @return: string
         """
-        if config_data_id is None:
-            if model_config is None:
-                return
-            config_model_data_id = model_config.get('task_settings', {}).get('data_id', None)
-            if config_model_data_id is None:
-                new_config_data_id = config_model_id
-            else:
-                new_config_data_id = config_model_data_id
-        else:
-            new_config_data_id = config_data_id
-        return new_config_data_id
+        if config_data_id is not None:
+            return config_data_id
+        if model_config is None:
+            return
+        config_model_data_id = model_config.get('task_settings', {}).get('data_id', None)
+        return (
+            config_model_id
+            if config_model_data_id is None
+            else config_model_data_id
+        )
 
     def load_config(self, config_run_id):
         """
@@ -361,8 +440,7 @@ class JobManager(object):
         if config_run_id is None:
             return
         config_filename = self.get_config_filename(config_run_id)
-        config = self._load_json_as_object(config_filename, bucket_name='configs')
-        return config
+        return self._load_json_as_object(config_filename, bucket_name='configs')
 
     def load_metadata(self, run_id):
         """
@@ -373,8 +451,7 @@ class JobManager(object):
         if run_id is None:
             return
         data_output_filename = self.get_metadata_filename(run_id)
-        data_results = self._load_json_as_object(data_output_filename, bucket_name='metadata')
-        return data_results
+        return self._load_json_as_object(data_output_filename, bucket_name='metadata')
 
     def load_features_with_flag(self, data_id, reuse_flag=False):
         """
@@ -385,8 +462,7 @@ class JobManager(object):
         if not reuse_flag or data_id is None:
             return
         features_filename = self.get_features_filename(data_id)
-        features = self._load_csv_as_data_frame(features_filename, bucket_name='csvs')
-        return features
+        return self._load_csv_as_data_frame(features_filename, bucket_name='csvs')
 
     def load_features(self, config_reuse_features_id):
         """
@@ -397,8 +473,7 @@ class JobManager(object):
         if config_reuse_features_id is None:
             return
         features_filename = self.get_features_filename(config_reuse_features_id)
-        features = self._load_csv_as_data_frame(features_filename, bucket_name='csvs')
-        return features
+        return self._load_csv_as_data_frame(features_filename, bucket_name='csvs')
 
     def load_objects(self, model_id, data_id):
         """
@@ -418,7 +493,7 @@ class JobManager(object):
                 if nargs == 4:
                     file_name, manager, mlapp_type, file_type = f.split('.')
                     object_results[manager] = \
-                        self.file_objects_types.get(mlapp_type, self.file_objects_types['pkl'])['load_method'](
+                            self.file_objects_types.get(mlapp_type, self.file_objects_types['pkl'])['load_method'](
                             f, bucket_name='objects')
                 else:
                     # first 6 types of names
@@ -428,12 +503,12 @@ class JobManager(object):
                     if manager not in object_results.keys():
                         object_results[manager] = {}
                     object_results[manager][model_name] = \
-                        self.file_objects_types.get(mlapp_type, self.file_objects_types['pkl'])['load_method'](
+                            self.file_objects_types.get(mlapp_type, self.file_objects_types['pkl'])['load_method'](
                             f, bucket_name='objects', module=import_module)
 
             return object_results
         except Exception as e:
-            print("An error accord while load objects. Reason: " + str(e))
+            print(f"An error accord while load objects. Reason: {str(e)}")
             raise FrameworkException()
 
     ##################################################################
@@ -443,20 +518,16 @@ class JobManager(object):
     ##################################################################
 
     def _load_model_id_from_config(self):
-        model_id = self.job_settings.get('model_id', None)
-        return model_id
+        return self.job_settings.get('model_id', None)
 
     def _load_data_id_from_config(self):
-        data_id = self.job_settings.get('data_id', None)
-        return data_id
+        return self.job_settings.get('data_id', None)
 
     def _load_reuse_features_id_from_config(self):
-        reuse_features_id = self.job_settings.get('reuse_features_id', None)
-        return reuse_features_id
+        return self.job_settings.get('reuse_features_id', None)
 
     def _load_reuse_features_flag_from_config(self):
-        reuse_features_flag = self.job_settings.get('reuse_features', False)
-        return reuse_features_flag
+        return self.job_settings.get('reuse_features', False)
 
     def _load_pickle_as_object(self, file_name, module=None, bucket_name='objects'):
         try:
@@ -467,7 +538,7 @@ class JobManager(object):
         except SkipToLocalException:
             local_path = os.path.join(self.local_storage_path, file_name)
         except Exception as e:
-            print("Failed to load object from file storage. Reason: " + str(e))
+            print(f"Failed to load object from file storage. Reason: {str(e)}")
             raise FrameworkException()
 
         return general_utils.load_pickle_to_object(local_path)
@@ -492,10 +563,10 @@ class JobManager(object):
             try:
                 file_path = os.path.join(self.local_storage_path, file_name)
             except Exception as e:
-                print("spark model file was not loaded. Reason: " + str(e))
+                print(f"spark model file was not loaded. Reason: {str(e)}")
                 return None
         except Exception as e:
-            print("Failed to load spark object from file storage. Reason: " + str(e))
+            print(f"Failed to load spark object from file storage. Reason: {str(e)}")
             raise FrameworkException()
 
         return self.spark_handler.load_model(file_path=file_path.replace('.zip', ''), module=module)
@@ -505,8 +576,7 @@ class JobManager(object):
             if model_id is None:
                 return
             modules_filename = self.get_objects_modules_filename(model_id)
-            modules = self._load_json_as_object(modules_filename, bucket_name='objects')
-            return modules
+            return self._load_json_as_object(modules_filename, bucket_name='objects')
         except:
             return {}
 
@@ -537,7 +607,9 @@ class JobManager(object):
 
             files_path = filter(lambda f: f.endswith(tuple(types_suffix)), files_path)
         except Exception as e:
-            raise FrameworkException('Failed to load objects files from file storage. reason: ' + str(e))
+            raise FrameworkException(
+                f'Failed to load objects files from file storage. reason: {str(e)}'
+            )
 
         return files_path
 
@@ -563,11 +635,11 @@ class JobManager(object):
             try:
                 df = pd.read_csv(os.path.join(self.local_storage_path, file_name))
             except Exception as e:
-                print("File %s was not loaded. Reason: %s" % (str(file_name), str(e)))
+                print(f"File {str(file_name)} was not loaded. Reason: {str(e)}")
                 raise DataFrameNotFound(
                     "Error: file " + file_name + " is not found. Make sure you provided the right names and ids.")
         except Exception as e:
-            print("File %s was not loaded. Reason: %s" % (str(file_name), str(e)))
+            print(f"File {str(file_name)} was not loaded. Reason: {str(e)}")
             raise FrameworkException()
         return df
 
@@ -639,7 +711,7 @@ class JobManager(object):
         # if to table is not None or empty string, it will try to store the df in DB.
         for df_name, df in dataframes.items():
             if df is None:
-                print("Warning: %s Dataframe not stored" % (str(df_name)))
+                print(f"Warning: {str(df_name)} Dataframe not stored")
             table_name = tables.get(df_name)
             filename = self.get_dataframe_filename(self.identity['run_id'], df_name)
             self._store_dataframe(df, filename, run_id=self.identity['run_id'], table_name=table_name)
@@ -659,9 +731,7 @@ class JobManager(object):
             # gets mlapp relevant type dictionary
             obj_dict = self.file_objects_types.get(file_type, self.file_objects_types['pkl'])
 
-            # handle model manager storing objects
-            models_content = content.get(self.MODELS, {})
-            if models_content:
+            if models_content := content.get(self.MODELS, {}):
                 # gets mlapp_file_type
                 try:
                     mlapp_type, _ = obj_dict['type'].split(self.DOT)
@@ -692,9 +762,7 @@ class JobManager(object):
                     # call store method according to file type
                     obj_dict['store_method'](models_content, models_filename, bucket_name='objects')
 
-            # handle data manager storing objects
-            data_content = content.get(self.DATA, {})
-            if data_content:
+            if data_content := content.get(self.DATA, {}):
                 # gets mlapp_type
                 mlapp_type, _ = obj_dict['type'].split(self.DOT)
 
@@ -726,20 +794,22 @@ class JobManager(object):
         except SkipToLocalException:
             pass
         except Exception as e:
-            print("Failed to store metadata in db. Reason: " + str(e))
+            print(f"Failed to store metadata in db. Reason: {str(e)}")
 
         saved_path = None
         try:
             saved_path = self._store_object_as_json(metadata, file_name, bucket_name='metadata')
         except Exception as e:
-            print("Error: in storing metadata please check if your metadata is a valid JSON. Reason: " + str(e))
+            print(
+                f"Error: in storing metadata please check if your metadata is a valid JSON. Reason: {str(e)}"
+            )
 
         try:
             if os.path.exists(saved_path):
                 self._store_object_in_csv_logger(run_id, metadata)
             print("Saved metadata in the local CSV logger file.")
         except Exception as e:
-            print("Failed to store metadata in CSV logger file. Reason: " + str(e))
+            print(f"Failed to store metadata in CSV logger file. Reason: {str(e)}")
 
     def store_flow_metadata(self, flow_id, **kwargs):
         """
@@ -748,10 +818,8 @@ class JobManager(object):
         :param flow_id: string
         :return: None
         """
-        metadata = {}
         pipelines_metadata = kwargs.get('pipelines_metadata', {})
-        metadata['flow_id'] = flow_id
-        metadata['pipelines_metadata'] = pipelines_metadata
+        metadata = {'flow_id': flow_id, 'pipelines_metadata': pipelines_metadata}
         json_validation_warninig_message = "%s is not json serializable, removed from metadata."
         general_utils.validate_json(metadata, json_validation_warninig_message)
         file_name = self.get_flow_metadata_filename(flow_id)
@@ -766,20 +834,22 @@ class JobManager(object):
         except SkipToLocalException:
             pass
         except Exception as e:
-            print("Failed to store metadata in db. Reason: " + str(e))
+            print(f"Failed to store metadata in db. Reason: {str(e)}")
 
         saved_path = None
         try:
             saved_path = self._store_object_as_json(metadata, file_name, bucket_name='metadata')
         except Exception as e:
-            print("Error: in storing metadata please check if your metadata is a valid JSON. Reason: " + str(e))
+            print(
+                f"Error: in storing metadata please check if your metadata is a valid JSON. Reason: {str(e)}"
+            )
 
         try:
             if os.path.exists(saved_path):
                 self._store_object_in_csv_logger(flow_id, metadata)
                 print("Stored the metadata in the local CSV logger file.")
         except Exception as e:
-            print("Failed to store metadata in CSV logger file. Reason: " + str(e))
+            print(f"Failed to store metadata in CSV logger file. Reason: {str(e)}")
 
     def store_configs(self):
         """
@@ -839,7 +909,7 @@ class JobManager(object):
                 pass
             except Exception as e:
                 # Keeping images in local file store in case of failure
-                print("Failed to store images in file storage. Reason: " + str(e))
+                print(f"Failed to store images in file storage. Reason: {str(e)}")
                 print("Stored images in local file storage instead.")
 
     ###################################################################
@@ -949,24 +1019,27 @@ class JobManager(object):
                     self._store_file_in_file_store(
                         self.filestore_buckets[bucket_name], logger_file_name, fallback_path)
                     os.remove(fallback_path)
-                    print("Stored logger file %s in the file storage." % str(logger_file_name))
+                    print(f"Stored logger file {str(logger_file_name)} in the file storage.")
                 except Exception as e:
-                    print("Failed to store logger file %s in the file storage. Reason: %s" %
-                          (str(logger_file_name), str(e)))
-                    print("Logger file saved in %s storage path instead." % str(self.temporary_storage_path))
+                    print(
+                        f"Failed to store logger file {str(logger_file_name)} in the file storage. Reason: {str(e)}"
+                    )
+                    print(
+                        f"Logger file saved in {str(self.temporary_storage_path)} storage path instead."
+                    )
                     self.temporary_storage_files.add(str(logger_file_name))
         except SkipToLocalException:
             logger_file_name = self.get_logger_filename()
             local_path = os.path.join(self.local_storage_path, logger_file_name)
-            if os.path.exists(local_path):
-
-                if run_id is not None:
-                    logger_file_name = self.get_logger_filename(run_id)
-                    new_local_path = os.path.join(self.local_storage_path, logger_file_name)
-                    os.rename(local_path, new_local_path)
-                    print("Stored logger file %s in the local storage." % str(logger_file_name))
+            if os.path.exists(local_path) and run_id is not None:
+                logger_file_name = self.get_logger_filename(run_id)
+                new_local_path = os.path.join(self.local_storage_path, logger_file_name)
+                os.rename(local_path, new_local_path)
+                print(f"Stored logger file {str(logger_file_name)} in the local storage.")
         except Exception as e:
-            print('An Error accord when trying to write in to logger file. Reason: %s' % str(e))
+            print(
+                f'An Error accord when trying to write in to logger file. Reason: {str(e)}'
+            )
 
     def _store_object_as_pickle(self, obj, file_name, bucket_name='objects'):
         # Trying to save model pickle in file store
@@ -981,10 +1054,14 @@ class JobManager(object):
         except SkipToLocalException:
             file_path = os.path.join(self.local_storage_path, file_name)
             general_utils.save_object_to_pickle(obj, file_path)
-            print("Stored model in file %s in local storage %s" % (str(file_name), str(self.local_storage_path)))
+            print(
+                f"Stored model in file {str(file_name)} in local storage {str(self.local_storage_path)}"
+            )
         except Exception as e:
-            print("Failed to store model pickle in file storage. Reason: " + str(e))
-            print("Model is saved in %s storage path instead." % str(self.temporary_storage_path))
+            print(f"Failed to store model pickle in file storage. Reason: {str(e)}")
+            print(
+                f"Model is saved in {str(self.temporary_storage_path)} storage path instead."
+            )
             self.temporary_storage_files.add(str(file_name))
 
     def _store_file_in_file_store(self, bucket_name, file_name, file_local_path):
@@ -1015,13 +1092,17 @@ class JobManager(object):
                 # saving object as json
                 general_utils.save_object_as_json(obj, saved_path)
             except Exception as e:
-                print("Failed to store json %s in local storage. Reason: %s" % (str(file_name), str(e)))
+                print(
+                    f"Failed to store json {str(file_name)} in local storage. Reason: {str(e)}"
+                )
                 raise FrameworkException()
         except Exception as e:
-            print("Failed to store json %s in file storage. Reason: %s" % (str(file_name), str(e)))
+            print(
+                f"Failed to store json {str(file_name)} in file storage. Reason: {str(e)}"
+            )
             if os.path.exists(saved_path):
                 self.temporary_storage_files.add(str(file_name))
-                print('Stored json %s in %s' % (str(file_name), str(self.temporary_storage_path)))
+                print(f'Stored json {str(file_name)} in {str(self.temporary_storage_path)}')
                 self.temporary_storage_files.add(str(file_name))
 
         return saved_path
@@ -1034,7 +1115,7 @@ class JobManager(object):
         :return: None
         """
         row = [key + ": " + str(value) for key, value in dictionary.items()]
-        row.insert(0, "run_id: " + str(run_id))
+        row.insert(0, f"run_id: {str(run_id)}")
         file_path = os.path.join(self.local_storage_path, self.output_logger_filename)
         with open(file_path, 'a+') as f:
             writer = csv.writer(f)
@@ -1049,7 +1130,9 @@ class JobManager(object):
             self._store_dataframe_in_db(df, table_name, run_id=run_id, dtype=dtype)
         except Exception as e:
             if not isinstance(e, SkipToLocalException):
-                print("Failed to store Dataframe in database table %s. Reason: %s" % (str(table_name), str(e)))
+                print(
+                    f"Failed to store Dataframe in database table {str(table_name)}. Reason: {str(e)}"
+                )
 
             self._store_data_frame_as_csv(df, file_name, bucket_name=bucket_name)
 
@@ -1061,11 +1144,7 @@ class JobManager(object):
         if run_id is not None:
             df['forecast_id'] = run_id
 
-            if config_model_id is None:
-                df['model_id'] = run_id
-            else:
-                df['model_id'] = config_model_id
-
+            df['model_id'] = run_id if config_model_id is None else config_model_id
             df['timestamp'] = pd.datetime.now()
 
         self.db_handler.insert_df(table_name, df)  # TODO: add dtypes to db handlers
@@ -1087,10 +1166,12 @@ class JobManager(object):
             file_path = os.path.join(self.local_storage_path, file_name)
             # saving to local path
             df.to_csv(file_path, index=False)
-            print("Stored %s in local storage %s" % (str(file_name), str(self.local_storage_path)))
+            print(
+                f"Stored {str(file_name)} in local storage {str(self.local_storage_path)}"
+            )
         except Exception as e:
-            print("Failed to store Dataframe file %s. Reason: %s" % (str(file_name), str(e)))
-            print("Stored %s in %s" % (str(file_name), str(self.temporary_storage_path)))
+            print(f"Failed to store Dataframe file {str(file_name)}. Reason: {str(e)}")
+            print(f"Stored {str(file_name)} in {str(self.temporary_storage_path)}")
             self.temporary_storage_files.add(str(file_name))
 
     def _store_object_modules(self, data, bucket_name=None):
@@ -1119,8 +1200,10 @@ class JobManager(object):
 
             self._store_file_in_file_store(self.filestore_buckets[bucket_name], file_name, file_path)
         except Exception as e:
-            print("Failed to store json %s in the file store. Reason: %s" % (str(file_name), str(e)))
-            print("Stored %s in %s" % (str(file_name), str(self.temporary_storage_path)))
+            print(
+                f"Failed to store json {str(file_name)} in the file store. Reason: {str(e)}"
+            )
+            print(f"Stored {str(file_name)} in {str(self.temporary_storage_path)}")
 
     def _store_spark_object_into_files(self, spark_object, file_name, bucket_name='objects'):
         try:
@@ -1140,11 +1223,15 @@ class JobManager(object):
             # storing file in local storage
             file_path = os.path.join(self.local_storage_path, file_name)
             spark_object.save(file_path)
-            print("Stored spark model in file %s in local storage %s" % (str(file_name), str(self.local_storage_path)))
+            print(
+                f"Stored spark model in file {file_name} in local storage {str(self.local_storage_path)}"
+            )
         except Exception as e:
-            print("Failed to store spark model in file storage. Reason: " + str(e))
-            print("Spark model is saved in %s storage path instead." % str(self.temporary_storage_path))
-            self.temporary_storage_files.add(str(file_name))
+            print(f"Failed to store spark model in file storage. Reason: {str(e)}")
+            print(
+                f"Spark model is saved in {str(self.temporary_storage_path)} storage path instead."
+            )
+            self.temporary_storage_files.add(file_name)
 
     ##########################################################################
     #                                                                        #
@@ -1176,7 +1263,7 @@ class JobManager(object):
             pass
 
     def import_object_from_module(self, module, class_name):
-        s = "from " + str(module) + " import " + class_name
+        s = f"from {str(module)} import " + class_name
         try:
             return s
         except Exception as e:
@@ -1196,12 +1283,10 @@ class JobManager(object):
             self.config['model_settings'] = updated_model_settings
 
     def validate_config(self):
-        pipeline = self.job_settings.get('pipeline', None)
-        if pipeline:
-            asset_name = self.identity['asset_name']
-            schema_file = "assets/{}/configs/{}_schema.json".format(asset_name, pipeline)
-        else:
+        if not (pipeline := self.job_settings.get('pipeline', None)):
             raise ConfigKeyError('missing required field - "pipeline" in `task_settings`')
+        asset_name = self.identity['asset_name']
+        schema_file = f"assets/{asset_name}/configs/{pipeline}_schema.json"
         if os.path.exists(schema_file):
             with open(schema_file, 'r') as f:
                 schema = json.loads(f.read())
@@ -1214,7 +1299,9 @@ class JobManager(object):
         if not self.file_store_handler.empty() and len(self.temporary_storage_files) > 0:
             print("The Following files:", sep=" ")
             print(*self.temporary_storage_files, sep=", ")
-            print("failed to saved on file storage and stored in %s instead." % str(self.temporary_storage_path))
+            print(
+                f"failed to saved on file storage and stored in {str(self.temporary_storage_path)} instead."
+            )
 
     def log_to_file(self, run_id):
         logger_dir = self.local_storage_path if self.file_store_handler.empty() else self.temporary_storage_path
@@ -1234,10 +1321,13 @@ class JobManager(object):
         self.last_time = self.start_time
         print('-------------------------------------- Starting analysis ----------------------------------------------')
         if run_id is None:
-            print('Analysis `{}` began running at {}'.format(self.identity['asset_name'], self.start_time))
+            print(
+                f"Analysis `{self.identity['asset_name']}` began running at {self.start_time}"
+            )
         else:
-            print('Analysis `{}` began running at `{}`, with Run Id: `{}`'
-                  .format(self.identity['asset_name'], self.start_time, run_id))
+            print(
+                f"Analysis `{self.identity['asset_name']}` began running at `{self.start_time}`, with Run Id: `{run_id}`"
+            )
         print('-------------------------------------------------------------------------------------------------------')
 
     def pipeline_end_print(self, run_id=None):
@@ -1247,17 +1337,15 @@ class JobManager(object):
 
         self.last_time = time_now
         print('------------------------------------ Analysis Summary Print -------------------------------------------')
-        print('Job id: {}'.format(self.job_id))
-        print('Asset Name: {}'.format(self.identity['asset_name']))
-        print('Run id: {}'.format(run_id))
-        # print('Local Config path (in case `run.py` was used): ', self.config_path)
-        images = self.output_manager.get_images_files()
-        if images:
+        print(f'Job id: {self.job_id}')
+        print(f"Asset Name: {self.identity['asset_name']}")
+        print(f'Run id: {run_id}')
+        if images := self.output_manager.get_images_files():
             print('Images saved:  ')
             for img_name in images:
                 print(' >> ', img_name)
-        print('Current date and time: {}'.format(time_now))
-        print('Analysis started running at: {}'.format(self.start_time))
-        print('Elapsed Time from the beginning: {}'.format(str(start_time_delta)))
+        print(f'Current date and time: {time_now}')
+        print(f'Analysis started running at: {self.start_time}')
+        print(f'Elapsed Time from the beginning: {str(start_time_delta)}')
         print('-------------------------------------------------------------------------------------------------------')
         print('Job has completed successfully.')

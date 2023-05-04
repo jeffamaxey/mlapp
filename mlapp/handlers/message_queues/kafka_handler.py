@@ -79,7 +79,7 @@ class KafkaHandler(MessageQueueInterface):
 
                 if self.listening == False:
                     self.listening = True
-                    print('[*] Waiting for messages in ' + str(queue_names) + '. To exit press CTRL+C')
+                    print(f'[*] Waiting for messages in {str(queue_names)}. To exit press CTRL+C')
 
             except Exception as e:
                 print(e)

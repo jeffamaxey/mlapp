@@ -28,14 +28,14 @@ class TestManagers(unittest.TestCase):
         intercept = np.random.rand(1)[0]
         coefficients = np.random.rand(2)
         cv_score = np.random.rand(1)[0]
-        all_cv_scores = pd.DataFrame(np.random.rand(5,5), columns=[x for x in 'abcde'])
+        all_cv_scores = pd.DataFrame(np.random.rand(5,5), columns=list('abcde'))
         figures = {'img_1': img, 'img_2': img}
 
         automl_reults = AutoMLResults()
         automl_reults.add_cv_run(regression, best_estimator, feature_selection, train_predicted, test_predicted,
                                  selected_features, best_model, intercept, coefficients, cv_score, all_cv_scores,
                                  figures, y_train=y_train, y_test=y_test)
-        
+
         return automl_reults
     
     @classmethod

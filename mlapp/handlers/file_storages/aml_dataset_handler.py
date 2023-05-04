@@ -24,11 +24,11 @@ class AmlDatasetHandler(FileStorageInterface):
             raise SkipServiceException('Skip AmlModelStorageHandler handler')
         ws = run.experiment.workspace
         ds = Dataset.get_by_name(workspace=ws, name=dataset_name)  # Get a Dataset by name
-        if dataset_type == 'spark':
-            df = ds.to_spark_dataframe()  # Load a Tabular Dataset into pandas DataFrame
-        else:
-            df = ds.to_pandas_dataframe()  # Load a Tabular Dataset into pandas DataFrame
-        return df
+        return (
+            ds.to_spark_dataframe()
+            if dataset_type == 'spark'
+            else ds.to_pandas_dataframe()
+        )
 
     def upload_file(self, dataset: pd.DataFrame, dataset_name: str, dataset_type: str='pandas', *args, **kwargs):
         """

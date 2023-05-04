@@ -40,8 +40,7 @@ def str_to_camelcase(s):
     :return: string (camelcase)
     '''
     res = ''.join(x for x in s.title() if not x.isspace())
-    res = res.replace("_", "")
-    return res
+    return res.replace("_", "")
 
 
 def validate_str(s):
@@ -56,8 +55,7 @@ def validate_str(s):
     new_s = s
     new_s = new_s.replace("_", "-")
     new_s = ''.join(x for x in new_s.title() if not x.isspace())
-    new_s = new_s.upper()
-    return new_s
+    return new_s.upper()
 
 
 def create_file(file_name, path='', permissions='w+', content=''''''):
@@ -67,15 +65,10 @@ def create_file(file_name, path='', permissions='w+', content=''''''):
         full_file_path = os.path.join(path, file_name)
         full_file_path = os.path.join(os.getcwd(), full_file_path)
 
-        # create file according to parameters.
-        f = open(full_file_path, permissions)
-
-        # write content in file.
-        if content != '''''':
-            f.write(content)
-
-        # close file.
-        f.close()
+        with open(full_file_path, permissions) as f:
+            # write content in file.
+            if content != '''''':
+                f.write(content)
 
     except Exception as e:
         raise e
@@ -126,7 +119,7 @@ def set_env(env_filename, env_path='env'):
         else:
             d['env_file_path'] = os.path.join(env_path, env_filename)
 
-        config_file_content = '''settings = ''' + json.dumps(d, indent=2)
+        config_file_content = f'''settings = {json.dumps(d, indent=2)}'''
         create_file(file_name='config.py', content=config_file_content)
 
     except Exception as e:
@@ -161,7 +154,7 @@ def format_service_dictto_txt(service_dict):
     for key, value in service_dict.items():
         str_val = str(value)
         if str_val != "":
-            text += key + '''=''' + str_val + '''\n'''
+            text += f'''{key}={str_val}''' + '''\n'''
 
     return text
 
@@ -192,7 +185,7 @@ def check_for_service_uniqueness_name(service_name, env_filename):
                     if current_service_name != '' and current_service_name[0] != '#':
                         services[current_service_name.lower()] = True
 
-        return not service_name.lower() in services.keys()
+        return service_name.lower() not in services
 
     except Exception as e:
         raise e
@@ -232,9 +225,7 @@ def to_int(s):
 def list_one_check(s):
     l = s.split(',')
     l = list(filter(lambda x: x != '', l))
-    res = ''
-    for x in l:
-        res += x + ','
+    res = ''.join(f'{x},' for x in l)
     return res[:-1]
 
 
@@ -253,12 +244,11 @@ def copy_files(src, dest, except_list=None, include_list=None):
         for file_name in src_files:
             if file_name in except_list:
                 continue
-            else:
-                full_filename = os.path.join(src, file_name)
-                if os.path.isfile(full_filename):
-                    shutil.copy(full_filename, dest)
-                elif os.path.isdir(full_filename):
-                    copy_files(os.path.join(src, file_name), os.path.join(dest, file_name), except_list)
+            full_filename = os.path.join(src, file_name)
+            if os.path.isfile(full_filename):
+                shutil.copy(full_filename, dest)
+            elif os.path.isdir(full_filename):
+                copy_files(os.path.join(src, file_name), os.path.join(dest, file_name), except_list)
 
     except Exception as e:
         raise e
@@ -282,7 +272,6 @@ def str_capitalize(s):
     try:
         words = re.split(r"[, \-!#$%^&*@?_:]+", s)
         words = map(lambda x: x.capitalize(), words)
-        res = "".join(words)
-        return res
+        return "".join(words)
     except Exception as e:
         raise e

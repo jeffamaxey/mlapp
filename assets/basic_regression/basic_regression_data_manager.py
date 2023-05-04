@@ -9,8 +9,7 @@ class BasicRegressionDataManager(DataManager):
     @pipeline
     def load_train_data(self, *args):
         local_path = os.path.join(os.getcwd(), self.data_settings.get('local_file_path'))
-        data = self._load_data_from_file(local_path)
-        return data
+        return self._load_data_from_file(local_path)
 
     @pipeline
     def clean_train_data(self, data):
@@ -31,11 +30,15 @@ class BasicRegressionDataManager(DataManager):
     def load_forecast_data(self, *args):
         local_path = os.path.join(os.getcwd(), self.data_settings.get('local_file_path'))
         data = self._load_data_from_file(local_path)
-        
+
         # creating predict data for example
         data.drop([self.model_settings['variable_to_predict']], axis=1, inplace=True)
-        data = pd.DataFrame(data=np.random.normal(data.mean().mean(), data.std().mean(), data.shape)[0:10],
-                            columns=data.columns)
+        data = pd.DataFrame(
+            data=np.random.normal(
+                data.mean().mean(), data.std().mean(), data.shape
+            )[:10],
+            columns=data.columns,
+        )
         return data
 
     @pipeline

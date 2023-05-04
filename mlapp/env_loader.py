@@ -25,16 +25,14 @@ class EnvironmentLoader:
         except ValueError:
             return Env()
         except Exception as e:
-            raise Exception('Error in EnvironmentLoader, load method ' + str(e))
+            raise Exception(f'Error in EnvironmentLoader, load method {str(e)}')
 
     @staticmethod
     def create_services(env, services_dict, available_services):
         """
         This file creates the services based on the `.env` file and environment variables.
         """
-        services_settings = {}
-
-        for service_name, service_type in services_dict.items():
-            services_settings[service_name] = available_services(env)[service_type](service_name)
-
-        return services_settings
+        return {
+            service_name: available_services(env)[service_type](service_name)
+            for service_name, service_type in services_dict.items()
+        }

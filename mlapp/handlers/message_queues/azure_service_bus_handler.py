@@ -39,18 +39,20 @@ class AzureServicesBusHandler(MessageQueueInterface):
                 print(e)
 
     def listen_to_queues(self, queue_names, callback):
-        print('[*] Waiting for messages in ' + str(queue_names[0]) + '. To exit press CTRL+C')
+        print(
+            f'[*] Waiting for messages in {str(queue_names[0])}. To exit press CTRL+C'
+        )
         while True:
             try:
                 queue_client = self.client.get_queue(queue_names[0])
                 with queue_client.get_receiver(mode=ReceiveSettleMode.PeekLock) as receiver:
-                    batch = receiver.fetch_next(max_batch_size=1, timeout=self.connection_timeout)
-                    while batch:
+                    while batch := receiver.fetch_next(
+                        max_batch_size=1, timeout=self.connection_timeout
+                    ):
                         for message in batch:
                             message.complete()
                             callback(str(message))
-                        batch = receiver.fetch_next(max_batch_size=1, timeout=self.connection_timeout)
             except ServiceBusError as e:
-                print(str(e))
+                print(e)
             finally:
                 time.sleep(1)

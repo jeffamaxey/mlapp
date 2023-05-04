@@ -7,16 +7,23 @@ def _draw_hyper_param_evolution_build_data(grid_search_results, hyper_param, gre
     grid_search_results_df = pd.DataFrame(grid_search_results.cv_results_)
     best_grid_item = grid_search_results_df[grid_search_results_df['rank_test_score'] == 1]['params'].values[0].copy()
     del best_grid_item[hyper_param]
-    grid_search_results_df['best_other_params'] = grid_search_results_df['params'].apply(
-        lambda y: all([y[key] == best_grid_item[key] for key in best_grid_item]))
+    grid_search_results_df['best_other_params'] = grid_search_results_df[
+        'params'
+    ].apply(
+        lambda y: all(y[key] == best_grid_item[key] for key in best_grid_item)
+    )
     results_df = grid_search_results_df[grid_search_results_df['best_other_params'] == 1].copy()
 
     for sample, style, plotly_style in (('train', '--', 'dash'), ('test', '-', 'solid')):
         try:
-            results_df.loc[:, 'mean_spread_low_%s' % sample] = \
-                results_df['mean_%s_score' % sample] - results_df['std_%s_score' % sample]
-            results_df['mean_spread_high_%s' % sample] = \
-                results_df['mean_%s_score' % sample] + results_df['std_%s_score' % sample]
+            results_df.loc[:, f'mean_spread_low_{sample}'] = (
+                results_df[f'mean_{sample}_score']
+                - results_df[f'std_{sample}_score']
+            )
+            results_df[f'mean_spread_high_{sample}'] = (
+                results_df[f'mean_{sample}_score']
+                + results_df[f'std_{sample}_score']
+            )
 
             results_df.sort_values(by=['param_' + hyper_param], inplace=True)
 
@@ -47,14 +54,22 @@ def _draw_hyper_param_evolution(grid_search_results, hyperparam, greater_is_bett
     # plot:
     color = 'g'
     for sample, style in (('train', '--'), ('test', '-')):
-        ax.fill_between(list(results_df['param_' + hyperparam].values),
-                        list(results_df['mean_spread_low_%s' % sample].values),
-                        list(results_df['mean_spread_high_%s' % sample].values),
-                        alpha=0.1 if sample == 'test' else 0, color=color)
+        ax.fill_between(
+            list(results_df['param_' + hyperparam].values),
+            list(results_df[f'mean_spread_low_{sample}'].values),
+            list(results_df[f'mean_spread_high_{sample}'].values),
+            alpha=0.1 if sample == 'test' else 0,
+            color=color,
+        )
 
-        ax.plot(list(results_df['param_' + hyperparam].values),
-                list(results_df['mean_%s_score' % sample].values),
-                style, color=color, alpha=1 if sample == 'test' else 0.7, label="score (%s)" % sample)
+        ax.plot(
+            list(results_df['param_' + hyperparam].values),
+            list(results_df[f'mean_{sample}_score'].values),
+            style,
+            color=color,
+            alpha=1 if sample == 'test' else 0.7,
+            label=f"score ({sample})",
+        )
 
     # dotted vertical line at the best score for that scorer marked by x and annotate the best score for that scorer
     ax.plot([best_param], [best_score], linestyle='None', color=color, marker='x', markeredgewidth=3, ms=8)
@@ -80,12 +95,19 @@ def score_evolution_hyper_params(grid_search_results, hyper_params, greater_is_b
     :return: Plots
     """
     if search_type == 'grid':
-        figs = []
-        keys = [k for k in hyper_params.keys() if len(hyper_params[k]) > 1 and not isinstance(hyper_params[k][0], str)
-                and not isinstance(hyper_params[k][0], tuple)]
-        if len(keys) > 0:
-            for index, hyperparam in enumerate(keys):
-                figs.append(_draw_hyper_param_evolution(grid_search_results, hyperparam, greater_is_better))
+        if keys := [
+            k
+            for k in hyper_params.keys()
+            if len(hyper_params[k]) > 1
+            and not isinstance(hyper_params[k][0], str)
+            and not isinstance(hyper_params[k][0], tuple)
+        ]:
+            figs = [
+                _draw_hyper_param_evolution(
+                    grid_search_results, hyperparam, greater_is_better
+                )
+                for hyperparam in keys
+            ]
             return [fig[0] for fig in figs]
     else:
         print("INFO: No grid search has been run. "

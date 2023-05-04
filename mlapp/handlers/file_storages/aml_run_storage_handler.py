@@ -43,14 +43,14 @@ class AmlRunStorageHandler(FileStorageInterface):
         # get azureml Run and Experiment details from postgres db
         result = self.db_handler.execute_query(RUN_QUERY, params=[run_id])
         if len(result) == 0:
-            raise Exception('ERROR: run context of run_id `%s` not exists, please make sure `%s` is the right id.' %
-                            (run_id, run_id))
+            raise Exception(
+                f'ERROR: run context of run_id `{run_id}` not exists, please make sure `{run_id}` is the right id.'
+            )
         db_aml_run_id, db_run_id, db_experiment_name = result.pop()
 
         # creating Run object
         experiment = Experiment(workspace=self.ws, name=db_experiment_name)
-        run = Run(experiment=experiment, run_id=db_aml_run_id)
-        return run
+        return Run(experiment=experiment, run_id=db_aml_run_id)
 
     def download_file(self, bucket_name, object_name, file_path, *args, **kwargs):
         """
@@ -96,14 +96,12 @@ class AmlRunStorageHandler(FileStorageInterface):
                 file_name = os.path.splitext(os.path.basename(file_path))[0]
                 image_name = '_'.join(file_name.split('_')[1:])
                 self.global_run.log_image(name=image_name, path=file_path)
-        # log metadata
-        else:
-            if bucket_name == self.metadata_bucket:
-                model_metadata = read_json_file(file_path)
-                scores = model_metadata.get('models', {}).get('scores', None)
-                if scores is not None:
-                    for score_key, score_value in scores.items():
-                        self.global_run.log(name=score_key, value=score_value)
+        elif bucket_name == self.metadata_bucket:
+            model_metadata = read_json_file(file_path)
+            scores = model_metadata.get('models', {}).get('scores', None)
+            if scores is not None:
+                for score_key, score_value in scores.items():
+                    self.global_run.log(name=score_key, value=score_value)
 
     def list_files(self, bucket_name, prefix="", *args, **kwargs):
         """

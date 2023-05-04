@@ -48,18 +48,15 @@ def evaluate_df_with_binary_output(X_df, y, pos_label=1, categorical_features=No
 
     results = {}
     y_column = ensure_float64(y)
-    i = 0
-    for col in X_df.columns:
-        is_categorical = True if col in categorical_features else False
+    for i, col in enumerate(X_df.columns):
+        is_categorical = col in categorical_features
         bins = []
         if col in bins_dict.keys():
             bins = bins_dict[col]
         c = _evaluate_binary_output(
             X_df[[col]], y_column, pos_label=pos_label, is_categorical=is_categorical, bins=bins)
-        results.update(c)
-        i += 1
-    results_df = _create_evaluate_df_results(results)
-    return results_df
+        results |= c
+    return _create_evaluate_df_results(results)
 
 
 def _evaluate_binary_output(x, y, pos_label=1, is_categorical=False, bins=None):
@@ -91,19 +88,16 @@ def _evaluate_binary_output(x, y, pos_label=1, is_categorical=False, bins=None):
 
             for col in x.columns:
                 result[col] = _evaluate_binary_feature(x, y, feature_original_name, pos_label)
-            return result
-        # continuous variable
+        elif len(bins) == 0:
+            result[x.columns[0]] = {}
         else:
-            if len(bins) == 0:
-                result[x.columns[0]] = {}
-            else:
-                cur_bins = bins
-                labels = range(len(cur_bins) - 1)
-                print(cur_bins)
-                categorical_x = pd.DataFrame(data=pd.cut(x[x.columns[0]].apply(float), bins=cur_bins,
-                                             labels=labels), columns=x.columns)
-                result = _evaluate_binary_output(categorical_x, y, pos_label, is_categorical=True)
-            return result
+            cur_bins = bins
+            labels = range(len(cur_bins) - 1)
+            print(cur_bins)
+            categorical_x = pd.DataFrame(data=pd.cut(x[x.columns[0]].apply(float), bins=cur_bins,
+                                         labels=labels), columns=x.columns)
+            result = _evaluate_binary_output(categorical_x, y, pos_label, is_categorical=True)
+        return result
     except Exception as e:
         raise e
 
@@ -111,7 +105,7 @@ def _evaluate_binary_output(x, y, pos_label=1, is_categorical=False, bins=None):
 def _evaluate_binary_feature(x, y, feature_original_name, pos_label=1):
     x = ensure_float64(x)
     y = ensure_float64(y)
-    if not len(np.unique(x)) <= 2 or not len(np.unique(y)):
+    if len(np.unique(x)) > 2 or not len(np.unique(y)):
         raise Exception("please provide binary x and y")
     y_positive_rate = np.count_nonzero(y == pos_label)/float(len(y))
     count_0 = np.count_nonzero(x == 0)
@@ -123,17 +117,18 @@ def _evaluate_binary_feature(x, y, feature_original_name, pos_label=1):
     is_0_informative = precision_0 > y_positive_rate
     is_1_informative = precision_1 > y_positive_rate
 
-    metrics = {'feature_original_name': feature_original_name,
-               'baseline_precision': y_positive_rate,
-               'count_0_in_x': count_0,
-               'count_1_in_x': count_1,
-               'precision_by_0' : precision_0,
-               'recall_by_0' : recall_0,
-               'precision_by_1' : precision_1,
-               'recall_by_1' : recall_1,
-               'is_0_informative': is_0_informative,
-               'is_1_informative': is_1_informative}
-    return metrics
+    return {
+        'feature_original_name': feature_original_name,
+        'baseline_precision': y_positive_rate,
+        'count_0_in_x': count_0,
+        'count_1_in_x': count_1,
+        'precision_by_0': precision_0,
+        'recall_by_0': recall_0,
+        'precision_by_1': precision_1,
+        'recall_by_1': recall_1,
+        'is_0_informative': is_0_informative,
+        'is_1_informative': is_1_informative,
+    }
 
 
 def polynomial_features_labeled(raw_input_df, power):
@@ -158,17 +153,18 @@ def polynomial_features_labeled(raw_input_df, power):
         for i in range(len(input_feature_names)):
             if feature_distillation[i] == 0:
                 continue
-            else:
-                variable = input_feature_names[i]
-                power = feature_distillation[i]
-                intermediary_label = "%s^%d" % (variable, power)
-                if final_label == "":
-                    final_label = intermediary_label
-                else:
-                    final_label = final_label + " x " + intermediary_label
+            variable = input_feature_names[i]
+            power = feature_distillation[i]
+            intermediary_label = "%s^%d" % (variable, power)
+            final_label = (
+                intermediary_label
+                if final_label == ""
+                else final_label + " x " + intermediary_label
+            )
         target_feature_names.append(final_label)
-    output_df = pd.DataFrame(output_nparray, columns=target_feature_names, index=input_df.index)
-    return output_df
+    return pd.DataFrame(
+        output_nparray, columns=target_feature_names, index=input_df.index
+    )
 
 
 def lag_feature(feature_df, lag, dropna=False):
@@ -179,13 +175,12 @@ def lag_feature(feature_df, lag, dropna=False):
         :param dropna: performs dropna after shift. default-False.
         :return: Transformed feature with the lag value added to the column name (i.e col_name_lag_5)..
     """
-    res = pd.DataFrame(columns=['%s_lag_%s' % (feature_df.name, str(lag))],
-                       data=feature_df.shift(lag, fill_value=None).values,
-                       index=feature_df.index)
-    if dropna:
-        return res.dropna()
-    else:
-        return res
+    res = pd.DataFrame(
+        columns=[f'{feature_df.name}_lag_{str(lag)}'],
+        data=feature_df.shift(lag, fill_value=None).values,
+        index=feature_df.index,
+    )
+    return res.dropna() if dropna else res
 
 
 def lead_feature(feature_df, lead, dropna=False):
@@ -196,13 +191,12 @@ def lead_feature(feature_df, lead, dropna=False):
       :param dropna: performs dropna after shift. default-False.
       :return: Transformed feature with the lead value added to the column name (i.e col_name_lead_5).
     """
-    res = pd.DataFrame(columns=['%s_lead_%s' % (feature_df.name, str(lead))],
-                       data=feature_df.shift(-lead, fill_value=None).values,
-                       index=feature_df.index)
-    if dropna:
-        return res.dropna()
-    else:
-        return res
+    res = pd.DataFrame(
+        columns=[f'{feature_df.name}_lead_{str(lead)}'],
+        data=feature_df.shift(-lead, fill_value=None).values,
+        index=feature_df.index,
+    )
+    return res.dropna() if dropna else res
 
 
 def log_feature(feature_df):
@@ -213,7 +207,7 @@ def log_feature(feature_df):
     """
     feature_df_bis = feature_df.copy()
     try:
-        feature_df_bis.rename('%s_log' % feature_df.name, inplace=True)
+        feature_df_bis.rename(f'{feature_df.name}_log', inplace=True)
         return feature_df_bis.apply(np.log)
     except:
         logger.info('Not possible to log', feature_df.name)
@@ -228,7 +222,7 @@ def exponent_feature(feature_df):
     """
     feature_df_bis = feature_df.copy()
     try:
-        feature_df_bis.rename('%s_exp' % feature_df.name, inplace=True)
+        feature_df_bis.rename(f'{feature_df.name}_exp', inplace=True)
         return feature_df_bis.apply(np.exp)
     except:
         logger.info('Not possible to exponent', feature_df.name)
@@ -244,7 +238,7 @@ def power_feature(feature_df, power):
     """
     feature_df_bis = feature_df.copy()
     try:
-        feature_df_bis.rename('%s_pow_%s' % (feature_df.name, str(power)), inplace=True)
+        feature_df_bis.rename(f'{feature_df.name}_pow_{str(power)}', inplace=True)
         return feature_df_bis.apply(lambda x: np.power(x, power))
     except:
         logger.info('Not possible to power {0}'.format(power), feature_df.name)
@@ -259,7 +253,7 @@ def sqrt_feature(feature_df):
    """
     feature_df_bis = feature_df.copy()
     try:
-        feature_df_bis.rename('%s_sqrt' % feature_df.name, inplace=True)
+        feature_df_bis.rename(f'{feature_df.name}_sqrt', inplace=True)
         return feature_df_bis.apply(np.sqrt)
     except:
         logger.info('Not possible to sqrt', feature_df.name)
@@ -274,8 +268,8 @@ def inverse_feature(feature_df):
    """
     feature_df_bis = feature_df.copy()
     try:
-        feature_df_bis.rename('%s_inverse' % feature_df.name, inplace=True)
-        return feature_df_bis.apply(lambda x: float(1) / x)
+        feature_df_bis.rename(f'{feature_df.name}_inverse', inplace=True)
+        return float(1) / feature_df_bis
     except:
         logger.info('Not possible to inverse', feature_df.name)
         return feature_df
@@ -377,24 +371,20 @@ def extend_dataframe(df, y_name_col=None, index_col=None, lead_order=3, lag_orde
                     result['power_' + feature_name] = transformed_feature
                     # transformed_feature.rename(columns={feature_name: 'power_' + feature_name}, inplace=True)
                     # result = pd.concat([result, transformed_feature], axis=1)
-            if log > 0:
-                if (feature_df >= 1).all():
-                    transformed_feature = log_feature(feature_df)
-                    result['log_' + feature_name] = transformed_feature
-                    result.replace(-np.inf, 0, inplace=True)
-            if exp > 0:
-                if (feature_df < 100).all():
-                    transformed_feature = exponent_feature(feature_df)
-                    result['exp_' + feature_name] = transformed_feature
-            if sqrt > 0:
-                if (feature_df > 0).all():
-                    transformed_feature = sqrt_feature(feature_df)
-                    result['sqrt_' + feature_name] = transformed_feature
-                    result.replace(-np.inf, 0, inplace=True)
-            if inverse:
-                if (feature_df != 0).all():
-                    transformed_feature = inverse_feature(feature_df)
-                    result['inverse_' + feature_name] = transformed_feature
+            if log > 0 and (feature_df >= 1).all():
+                transformed_feature = log_feature(feature_df)
+                result['log_' + feature_name] = transformed_feature
+                result.replace(-np.inf, 0, inplace=True)
+            if exp > 0 and (feature_df < 100).all():
+                transformed_feature = exponent_feature(feature_df)
+                result['exp_' + feature_name] = transformed_feature
+            if sqrt > 0 and (feature_df > 0).all():
+                transformed_feature = sqrt_feature(feature_df)
+                result['sqrt_' + feature_name] = transformed_feature
+                result.replace(-np.inf, 0, inplace=True)
+            if inverse and (feature_df != 0).all():
+                transformed_feature = inverse_feature(feature_df)
+                result['inverse_' + feature_name] = transformed_feature
 
         if poly_degree > 0:
             transformed_feature = polynomial_features_labeled(df[features_columns], poly_degree)
@@ -406,7 +396,7 @@ def extend_dataframe(df, y_name_col=None, index_col=None, lead_order=3, lag_orde
         else:
             final_extended_df.fillna(fillna_value, inplace=True)
 
-        if len(not_to_extend) > 0:
+        if not_to_extend:
             final_extended_df = pd.concat([df[not_to_extend], final_extended_df], axis=1)
 
         return final_extended_df
@@ -436,8 +426,7 @@ def _calc_se(X, y, y_hat, DOF):
     X_mul_X_transpose = np.dot(X_transpose.values, X.values)
     C = np.linalg.inv(X_mul_X_transpose)
     X_diagonal = np.diagonal(C)
-    SE = pd.Series(np.sqrt(MSE * X_diagonal))
-    return SE
+    return pd.Series(np.sqrt(MSE * X_diagonal))
 
 
 def calc_t_values(X, y, y_hat, coefficients):
@@ -453,7 +442,9 @@ def calc_t_values(X, y, y_hat, coefficients):
     @return: numpay array
     """
     if X.shape[1] != len(coefficients):
-        raise Exception('X shape ' + repr(X.shape) + ' not match coefficients length ' + repr(len(coefficients)))
+        raise Exception(
+            f'X shape {repr(X.shape)} not match coefficients length {repr(len(coefficients))}'
+        )
 
     # degree of freedom
     DOF = len(X) - len(coefficients) - 1
@@ -462,8 +453,7 @@ def calc_t_values(X, y, y_hat, coefficients):
 
     SE = _calc_se(X, y, y_hat, DOF)
     SE = pd.Series([1 if e == 0 else e for e in SE])
-    t_statistics = np.true_divide(coefficients, SE)
-    return t_statistics
+    return np.true_divide(coefficients, SE)
 
 
 def calc_p_values(X, y, y_hat, coefficients):
@@ -476,7 +466,9 @@ def calc_p_values(X, y, y_hat, coefficients):
     @return: NumPy array
     """
     if X.shape[1] != len(coefficients):
-        raise Exception('X shape ' + repr(X.shape) + ' not match coefficients length ' + repr(len(coefficients)))
+        raise Exception(
+            f'X shape {repr(X.shape)} not match coefficients length {repr(len(coefficients))}'
+        )
 
     # degree of freedom
     DOF = len(X) - len(coefficients) - 1

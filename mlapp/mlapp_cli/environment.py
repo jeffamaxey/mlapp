@@ -31,7 +31,7 @@ def init(name):
             # set the new env file
             set_env(name)
         else:
-            click.secho("ERROR: '" + name + "' file already exits.", fg='red')
+            click.secho(f"ERROR: '{name}' file already exits.", fg='red')
 
     except Exception as e:
         click.secho("ERROR: Oops, something went wrong.", fg='red')

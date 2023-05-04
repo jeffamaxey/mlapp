@@ -229,7 +229,7 @@ class _AutoMLWrapper(ABC):
     def __init__(self, estimator, settings=AutoMLSettings(), models=None, fixed_params=None, hyper_params=None,
                  model_classes=None, feature_selection=None, visualizations=None):
         if not isinstance(settings, AutoMLSettings):
-            raise AutoMLException(f"Error: 'settings' must be of type: 'AutoMLSettings'.")
+            raise AutoMLException("Error: 'settings' must be of type: 'AutoMLSettings'.")
 
         self.estimator = estimator
         self.settings = settings

@@ -67,16 +67,16 @@ class MLApp(object):
         except AttributeError as attrError:
             pass    # message body is string and not bytes
 
-        print("Hello, The following task is consumed:   " + str(message_body))
+        print(f"Hello, The following task is consumed:   {str(message_body)}")
         try:
             message_config = json.loads(literal_eval(message_body))
         except Exception as first_error:
             try:
                 message_config = json.loads(message_body)
             except Exception as second_error:
-                print("Error response: " + str('Message not in JSON format'))
+                print("Error response: " + 'Message not in JSON format')
                 traceback.print_exc()
-                self._send_error_response_to_mq(job_id, '-1', str('Message not in JSON format'))
+                self._send_error_response_to_mq(job_id, '-1', 'Message not in JSON format')
                 return
 
         print(message_config)
@@ -87,7 +87,7 @@ class MLApp(object):
                 job_id, results.get('status_code', -1), 'all went ok', results.get('response', {}))
 
         except Exception as error:
-            print("Error response: " + str(error))
+            print(f"Error response: {str(error)}")
             traceback.print_exc()
             self._send_error_response_to_mq(job_id, '-1', str(error))
         finally:
@@ -201,7 +201,7 @@ class MLApp(object):
         job_id = str(uuid.uuid4())
         message_to_send['job_id'] = job_id
         message_queue_instance.send_message(settings['queues']['listen_queue_names'][0], json.dumps(message_to_send))
-        print("Message Sent (job_id: " + job_id + "): ", asset_name, config_path)
+        print(f"Message Sent (job_id: {job_id}): ", asset_name, config_path)
 
     # ======== RUN CONFIGS MULTIPROCESSING  =========
     def run_configs_multiprocessing(self, instructions):
@@ -281,8 +281,19 @@ class MLApp(object):
                         config['pipelines_configs'][i]['job_settings'][id_type] = latest[asset_name]
                     else:
                         # raise exception as not found id
-                        raise Exception("Could not find latest `" + id_type + "` for `" + asset_name + "`. \n"
-                                        "Please update your config with a valid `" + id_type + "`")
+                        raise Exception(
+                            (
+                                (
+                                    (
+                                        f"Could not find latest `{id_type}` for `{asset_name}"
+                                        + "`. \n"
+                                        "Please update your config with a valid `"
+                                    )
+                                    + id_type
+                                )
+                                + "`"
+                            )
+                        )
 
     @staticmethod
     def _update_latest_model_id(config, run_ids):

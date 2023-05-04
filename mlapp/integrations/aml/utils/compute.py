@@ -7,7 +7,7 @@ def get_or_create_compute_target(workspace, compute_name, vm_size='STANDARD_D2_V
     if compute_name in workspace.compute_targets:
         compute_target = workspace.compute_targets[compute_name]
         if compute_target and type(compute_target) is AmlCompute:
-            print('Found compute target: ' + compute_name)
+            print(f'Found compute target: {compute_name}')
     else:
         print('Creating a new compute target...')
         provisioning_config = AmlCompute.provisioning_configuration(vm_size=vm_size,  # STANDARD_NC6 is GPU-enabled

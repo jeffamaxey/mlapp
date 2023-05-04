@@ -19,7 +19,9 @@ if __name__ == "__main__":
             handlers[service_name] = service_item['handler'](service_item.get('settings', {}))
         except Exception as e:
             if service_item['handler'] is None:
-                raise Exception("{} service is missing a python library installation.".format(service_name))
+                raise Exception(
+                    f"{service_name} service is missing a python library installation."
+                )
             else:
                 raise e
 

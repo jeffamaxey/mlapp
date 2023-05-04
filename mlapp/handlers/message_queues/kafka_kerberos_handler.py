@@ -48,7 +48,7 @@ class KafkaKerberosHandler(MessageQueueInterface):
         """
         consumer = confluent_kafka.Consumer(self.config)
         consumer.subscribe(queue_names)
-        print('[*] Waiting for messages in ' + str(queue_names) + '. To exit press CTRL+C')
+        print(f'[*] Waiting for messages in {str(queue_names)}. To exit press CTRL+C')
 
         while True:
             msg = consumer.poll()
@@ -56,7 +56,7 @@ class KafkaKerberosHandler(MessageQueueInterface):
             if msg is None:
                 continue
             if msg.error():
-                print("Consumer error: {}".format(msg.error()))
+                print(f"Consumer error: {msg.error()}")
                 continue
 
             callback(msg.value().decode('utf-8'))

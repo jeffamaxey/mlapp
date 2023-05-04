@@ -46,7 +46,9 @@ def deploy_model(
                 selected_run_id = run.id
                 break
         if selected_run_id is None:
-            raise Exception('ERROR: there is no matching Run object that associated with the run id %s in this experiment.' % str(run_id))
+            raise Exception(
+                f'ERROR: there is no matching Run object that associated with the run id {str(run_id)} in this experiment.'
+            )
         current_run = Run(experiment=experiment, run_id=selected_run_id)
 
         # download files from run object
@@ -100,29 +102,26 @@ def get_best_model_in_experiment(ws, experiment_name, asset_name, asset_label, s
             run_id = run_metrics["run_id"]
 
             if best_score is None:
+                best_score_run_id = run_id
+                best_score = run_score
+                best_pipeline_id = run_pipeline_id
+            elif (
+                greater_is_better
+                and run_score > best_score
+                or not greater_is_better
+                and run_score < best_score
+            ):
                 best_score = run_score
                 best_score_run_id = run_id
                 best_pipeline_id = run_pipeline_id
-            else:
-                if greater_is_better:
-                    if run_score > best_score:
-                        best_score = run_score
-                        best_score_run_id = run_id
-                        best_pipeline_id = run_pipeline_id
-                else:
-                    if run_score < best_score:
-                        best_score = run_score
-                        best_score_run_id = run_id
-                        best_pipeline_id = run_pipeline_id
-
     if not best_score:
         raise Exception(f"Error: score metric '{score_metric}' was not found in any run!")
 
     if not best_score_run_id:
         raise Exception(f"Error: haven't found a run with score metric '{score_metric}' score metric.")
 
-    print("Best model run_id: " + best_score_run_id)
-    print("Best model score: " + str(best_score))
+    print(f"Best model run_id: {best_score_run_id}")
+    print(f"Best model score: {str(best_score)}")
 
     if return_pipeline_id:
         return best_score_run_id, best_pipeline_id

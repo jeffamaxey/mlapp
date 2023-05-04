@@ -62,25 +62,24 @@ def setup(force):
             directory = file_options.get('dir', 'root')
             if directory == 'root':
                 full_path = os.path.join(os.getcwd(), file_name)
+            elif os.path.isdir(directory):
+                full_path = os.path.join(os.getcwd(), directory, file_name)
             else:
-                if os.path.isdir(directory):
-                    full_path = os.path.join(os.getcwd(), directory, file_name)
-                else:
-                    continue
+                continue
             if os.path.exists(full_path):
                 is_initiated = True
                 break
 
         if is_initiated:
             click.secho(
-                "ERROR: " + file_name + " already exists.\nHint: you can use 'mlapp aml setup --force' option to force setup (caution: force may override exsiting files).",
-                fg='red')
+                f"ERROR: {file_name}"
+                + " already exists.\nHint: you can use 'mlapp aml setup --force' option to force setup (caution: force may override exsiting files).",
+                fg='red',
+            )
             return
 
-        # setup azure machine learning deployment files
-        _setup_aml()
-    else:
-        _setup_aml()
+    # setup azure machine learning deployment files
+    _setup_aml()
 
 
 def _setup_aml():
@@ -225,7 +224,7 @@ def publish_multisteps_pipeline(pipeline_name):
     for i in range(number_of_steps):
         args = {}
         is_default_values = False  # if true takes all default values for the test of the parameters.
-        print('Please enter step %s arguments:' % str(i + 1))
+        print(f'Please enter step {str(i + 1)} arguments:')
         for dependency_name, body in dependencies.items():
             if is_default_values:
                 args[dependency_name] = body.get('default', None)
@@ -235,7 +234,7 @@ def publish_multisteps_pipeline(pipeline_name):
             if dependency_name == 'compute_target':
                 if args[dependency_name] in ws.compute_targets.keys():
                     break
-                elif args[dependency_name] in new_compute_targets.keys():
+                elif args[dependency_name] in new_compute_targets:
                     args = new_compute_targets[args[dependency_name]]
                     break
                 else:
@@ -265,7 +264,7 @@ def _update_env_name(env_name):
 
         d['aml']['environment'] = env_name
 
-        config_file_content = '''settings = ''' + json.dumps(d, indent=2)
+        config_file_content = f'''settings = {json.dumps(d, indent=2)}'''
         create_file(file_name='config.py', content=config_file_content)
 
     except Exception as e:
@@ -307,7 +306,11 @@ def _display_message(body):
         short_description = body.get('short_description', '')
 
         # create message to display on the terminal.
-        message = display_name + " (" + short_description + "): " if short_description != '' else display_name + ": "
+        message = (
+            f"{display_name} ({short_description}): "
+            if short_description != ''
+            else f"{display_name}: "
+        )
 
         # get user input
         user_input = clean_spaces(input(message))
@@ -320,7 +323,7 @@ def _display_message(body):
             if default_value is not None and user_input == EMPTY_INPUT:
                 user_input = default_value
             elif user_input == EMPTY_INPUT and is_required:
-                raise Exception("'" + display_name + "' is required, please enter a valid value.")
+                raise Exception(f"'{display_name}' is required, please enter a valid value.")
             else:
                 # validates user input
                 validations_methods = body.get('validations', [])
@@ -335,9 +338,7 @@ def _display_message(body):
                 for trans in transformations_methods:
                     user_input = trans(user_input)
 
-                # check for possible values
-                body_values = body.get('values', None)
-                if body_values:
+                if body_values := body.get('values', None):
                     body_values_keys = body['values'].keys()
                     if user_input in body_values_keys:
                         user_input = body['values'][user_input]

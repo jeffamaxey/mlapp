@@ -52,10 +52,11 @@ class IOManager(object):
         :param to_table: table name in physical database, to be saved to
         :return:
         """
-        if not self.dataframes.get(name, None) is None:
-            self.dataframes[name] = pd.concat([self.dataframes[name], data])
-        else:
-            self.dataframes[name] = data
+        self.dataframes[name] = (
+            data
+            if self.dataframes.get(name, None) is None
+            else pd.concat([self.dataframes[name], data])
+        )
         if to_table:
             self.tables[name] = to_table
 
@@ -125,19 +126,18 @@ class IOManager(object):
         :param imgs: dictionary of images with image names and objects
         :return:
         """
-        if isinstance(imgs, dict):
-            for key in imgs:
-                if isinstance(imgs[key], list):
-                    for index, figure in enumerate(imgs[key]):
-                        self.add_image(key + '_' + str(index), figure)
-                else:
-                    self.add_image(key, imgs[key])
-            if len(imgs):
-                self.to_store['images'] = True
-        else:
+        if not isinstance(imgs, dict):
             raise IoManagerException("Error in `add_images`! Send a dictionary where: \n"
                             " - Keys are the names of the image/s \n"
                             " - Values are `matplotlib` Figures, or a list of `matplotlib` Figures.")
+        for key in imgs:
+            if isinstance(imgs[key], list):
+                for index, figure in enumerate(imgs[key]):
+                    self.add_image(key + '_' + str(index), figure)
+            else:
+                self.add_image(key, imgs[key])
+        if len(imgs):
+            self.to_store['images'] = True
 
     def add_image(self, name, figure):
         """
@@ -274,10 +274,7 @@ class IOManager(object):
         :param key: key to search
         :return: all values found, in a list
         """
-        results = []
-        for res in search_key_recursive(self.structure,key):
-            results.append(res)
-        return results
+        return list(search_key_recursive(self.structure,key))
 
     #########################
     @staticmethod

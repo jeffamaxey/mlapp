@@ -70,12 +70,12 @@ def create_documentation(file_name, create_main_table_of_contents=False, mkdocs_
         exclusion_dict = {}
 
     with open(file_name, 'r') as f:
-        line = True
         temp = ''
         module_exclude_flag = False
         function_exclude_flag = False
         param_section = False
         output = ''
+        line = True
         while line:
             line = f.readline()
 
@@ -96,31 +96,30 @@ def create_documentation(file_name, create_main_table_of_contents=False, mkdocs_
                     module_exclude_flag = True
 
             # if line starts with a lot of spaces, turn them to &ensp; to preseve indentation:
-            if re.search(r'[^\s]', line):
-                if re.search(r'[^\s]', line).start() > 5:
-                    numSpaces = re.search(r'[^\s]', line).start()
-                    line = '&ensp;'*(numSpaces-3) + line[numSpaces:]
+            if (
+                re.search(r'[^\s]', line)
+                and re.search(r'[^\s]', line).start() > 5
+            ):
+                numSpaces = re.search(r'[^\s]', line).start()
+                line = '&ensp;'*(numSpaces-3) + line[numSpaces:]
 
             # turn the param section into a beautiful html table:
             if re.search(r'(:{1}\w*)\s*(\**\w*:{1})', line):  # match ":param: x"
-                if not re.search(r'^:return:', line):
-                    temp += line
-                    param_section = True
-                else:
+                if re.search(r'^:return:', line):
                     temp = re.sub(r'(:{1}\w*)\s*(\**\w*:{1})',  r'<br/><b><i>\2</b></i>', temp)
                     temp = temp[5:] # remove the leading <br/> I added..
                     temp2 = re.sub(r'(:return:)', r'', line)
-                    line = '<table style="width:100%"><tr><td valign="top"><b><i>Parameters:</b></i></td>' \
-                           '<td valign="top">'+temp+'</td></tr><tr><td valign="top"><b><i>Returns:</b></i>' \
-                                                    '</td><td valign="top">'+temp2+'</td></tr></table>'
+                    line = f'<table style="width:100%"><tr><td valign="top"><b><i>Parameters:</b></i></td><td valign="top">{temp}</td></tr><tr><td valign="top"><b><i>Returns:</b></i></td><td valign="top">{temp2}</td></tr></table>'
                     output = output + '\n<br/>' + line + '\n<br/>\n'
                     temp = ''
                     param_section = False
-            else:
-                if param_section:
-                    temp += line
                 else:
-                    output = output + line
+                    temp += line
+                    param_section = True
+            elif param_section:
+                temp += line
+            else:
+                output = output + line
 
         # convert examples to valid markdown.
         if mkdocs_format:

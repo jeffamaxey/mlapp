@@ -27,8 +27,7 @@ class ClassificationDataManager(DataManager):
     @pipeline
     def load_train_data(self, *args):
         local_path = os.path.join(os.getcwd(), self.data_settings["local_data_csvs"][0].get("path", ""))
-        data = self._load_data(local_path)
-        return data
+        return self._load_data(local_path)
 
     @pipeline
     def clean_train_data(self, data):
@@ -100,13 +99,11 @@ class ClassificationDataManager(DataManager):
     # ------------------------------ helper methods for train/forecast --------------------------------
     @staticmethod
     def _load_data(path):
-        data = pd.read_csv(path, encoding='ISO-8859-1')
-        return data
+        return pd.read_csv(path, encoding='ISO-8859-1')
 
     def _clean_data(self, data):
         data_handling = self.data_settings.get('data_handling')
-        set_features_index = data_handling.get('set_features_index', [])
-        if set_features_index:
+        if set_features_index := data_handling.get('set_features_index', []):
             data = data.set_index(set_features_index)
 
         features_for_train = data_handling.get('features_for_train', [])
@@ -147,8 +144,7 @@ class ClassificationDataManager(DataManager):
         action_for_continuous_features = data_handling.get('action_for_continuous_features', self.AUTO_BIN)
 
         data_df = self.feature_engineering_instance.transform_features(data_df, data_handling.get('features_handling'))
-        dates_transformation = data_handling.get('dates_transformation', {})
-        if dates_transformation:
+        if dates_transformation := data_handling.get('dates_transformation', {}):
             for col in dates_transformation.get('columns', []):
                 data_df = self.feature_engineering_instance.get_days_from_date(
                     data_df, col,
@@ -172,7 +168,7 @@ class ClassificationDataManager(DataManager):
         # -------------- Transform and split features to categorical and continues features ----------------------------
         print("---------------------- transform and split features to categorical and continues features -------------")
         data_df, categorical_columns, continuous_columns, binary_columns, continuous_bins = \
-            self.feature_engineering_instance.transform_and_split_features_to_categorical_and_continuous(
+                self.feature_engineering_instance.transform_and_split_features_to_categorical_and_continuous(
                 data_df,
                 data_handling.get("dates_format", ["%d/%m/%Y", "%Y-%m-%d"]),
                 action_for_continuous_features == self.AUTO_BIN)
@@ -216,10 +212,10 @@ class ClassificationDataManager(DataManager):
             # ------------------------- Combine filtered evaluator features -------------------------
             print("------------------------- Combine filtered evaluator features -------------------------")
             combined_lower_features_df, lower_features_mapping = self.feature_engineering_instance.\
-                combine_categorical_features(dummies_data_df,lower_features,sep=evaluator_features_sep)
+                    combine_categorical_features(dummies_data_df,lower_features,sep=evaluator_features_sep)
 
             combined_higher_features_df, higher_features_mapping = self.feature_engineering_instance.\
-                combine_categorical_features(dummies_data_df,higher_features,sep=evaluator_features_sep)
+                    combine_categorical_features(dummies_data_df,higher_features,sep=evaluator_features_sep)
 
             combined_df = pd.concat([combined_lower_features_df, combined_higher_features_df], axis=1)
 
@@ -234,16 +230,16 @@ class ClassificationDataManager(DataManager):
             for key in mandatory_categorical_features:
                 for item in mandatory_categorical_features[key]:
                     mandatory_features[item['name']] = \
-                        dummies_data_df[key + evaluator_features_sep + item['categories'][0]]
+                            dummies_data_df[key + evaluator_features_sep + item['categories'][0]]
                     for col in item['categories']:
                         mandatory_features[item['name']] = \
-                            mandatory_features[item['name']] | dummies_data_df[key + evaluator_features_sep + col]
+                                mandatory_features[item['name']] | dummies_data_df[key + evaluator_features_sep + col]
 
             results_df = mandatory_features
         else:
             results_df = data_df
 
-        if action_for_continuous_features == self.AUTO_BIN or action_for_continuous_features == self.REMOVE:
+        if action_for_continuous_features in [self.AUTO_BIN, self.REMOVE]:
             pass
         elif action_for_continuous_features == self.KEEP_AS_IS:
             data_df.drop(non_continuous_columns, axis=1, inplace=True)

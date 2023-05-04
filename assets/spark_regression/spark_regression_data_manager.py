@@ -54,15 +54,20 @@ class SparkRegressionDataManager(DataManager):
         # filling missing values by function/value
         if len(features_handling.keys()) > 0:
             missing_values = {
-                k: v['fillna'] if not isinstance(v.get('fillna', 'mean'), str) else
-                data.agg((eval('F.' + v.get('fillna', 'mean')))(k)).collect()[0][0]
+                k: data.agg((eval('F.' + v.get('fillna', 'mean')))(k)).collect()[
+                    0
+                ][0]
+                if isinstance(v.get('fillna', 'mean'), str)
+                else v['fillna']
                 for (k, v) in features_handling.items()
             }
 
         # filling default missing features by mean
         default_missing_features = list(set(data.columns).difference(set(list(features_handling.keys()))))
         default_missing_values = data.select([F.mean(c).alias(c) for c in default_missing_features]).collect()[0]
-        missing_values.update({c: default_missing_values[c] for c in default_missing_features})
+        missing_values |= {
+            c: default_missing_values[c] for c in default_missing_features
+        }
         self.save_metadata('missing_values', missing_values)
 
         if stored_missing_values is not None:
@@ -81,8 +86,8 @@ class SparkRegressionDataManager(DataManager):
             for col1 in columns_list:
                 for col2 in columns_list:
                     if col1 != col2:
-                        name = str(col1) + '_' + str(col2)
-                        reverse_name = str(col2) + '_' + str(col1)
+                        name = f'{str(col1)}_{str(col2)}'
+                        reverse_name = f'{str(col2)}_{str(col1)}'
                         if reverse_name not in list(data.columns):
                             data = data.withColumn(name, (F.col(col1) + 1) * (F.col(col2) + 1))
 
@@ -104,7 +109,9 @@ class SparkRegressionDataManager(DataManager):
             # applying transformations
             for feature_transformation_method in transformation_array:
                 data = data.withColumn(
-                    col + '_' + feature_transformation_method, eval('F.' + feature_transformation_method)(col))
+                    f'{col}_{feature_transformation_method}',
+                    eval(f'F.{feature_transformation_method}')(col),
+                )
 
         # dropping features
         features_to_remove = data_handling.get('features_to_remove', [])

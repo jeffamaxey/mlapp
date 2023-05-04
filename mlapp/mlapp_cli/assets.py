@@ -24,16 +24,21 @@ def commands():
 def show():
     assets_folder_path = os.path.join(os.getcwd(), 'assets')
     if os.path.exists(assets_folder_path):
-        your_assets = list(filter(lambda asset_name: os.path.isdir(os.path.join(assets_folder_path, asset_name)),
-                                  os.listdir(assets_folder_path)))
-        if len(your_assets) == 0:
-            click.secho(
-                "Your project not contains any assets at the moment.\nHint: use mlapp assets 'mlapp boilerplates install BOILERPLATE_NAME' or 'mlapp assets create ASSET_NAME' command for generating your first asset." ,fg='red')
-        else:
+        if your_assets := list(
+            filter(
+                lambda asset_name: os.path.isdir(
+                    os.path.join(assets_folder_path, asset_name)
+                ),
+                os.listdir(assets_folder_path),
+            )
+        ):
             click.echo('Your project assets:')
             for asset in your_assets:
                 if os.path.isdir(os.path.join(assets_folder_path, asset)) and asset != '__pycache__':
-                    click.echo('[*] ' + asset)
+                    click.echo(f'[*] {asset}')
+        else:
+            click.secho(
+                "Your project not contains any assets at the moment.\nHint: use mlapp assets 'mlapp boilerplates install BOILERPLATE_NAME' or 'mlapp assets create ASSET_NAME' command for generating your first asset." ,fg='red')
     else:
         click.secho(
             "ERROR: your project is not empty.\nHint: you can use 'mlapp init --force' option to force init (caution: force may override exsiting files).", fg='red')
@@ -57,7 +62,10 @@ def create(name, force, with_flow):
     full_directory_path = os.path.join(os.getcwd(), os.path.join('assets', asset_name))
     if os.path.exists(full_directory_path) and not force:
         click.secho(
-            'Error: ' + asset_name + ' asset already exists.\nHint: please select a unique name to your asset or use --force option to override asset folder.', fg='red')
+            f'Error: {asset_name}'
+            + ' asset already exists.\nHint: please select a unique name to your asset or use --force option to override asset folder.',
+            fg='red',
+        )
         return
 
     # create the necessary folders for the new asset, `asset_name` directory and asset configs directory.
@@ -86,20 +94,32 @@ def create(name, force, with_flow):
         forecast_config_file_content = forecast_config_file.replace("<ASSET_NAME>", asset_name)
 
     # create all managers templates
-    create_file(file_name=asset_name + '_model_manager.py', path=os.path.join('assets', asset_name), permissions='w+',
-                content=model_manager_file_content)
-    create_file(file_name=asset_name + '_data_manager.py', path=os.path.join('assets', asset_name), permissions='w+',
-                content=data_manager_file_content)
+    create_file(
+        file_name=f'{asset_name}_model_manager.py',
+        path=os.path.join('assets', asset_name),
+        permissions='w+',
+        content=model_manager_file_content,
+    )
+    create_file(
+        file_name=f'{asset_name}_data_manager.py',
+        path=os.path.join('assets', asset_name),
+        permissions='w+',
+        content=data_manager_file_content,
+    )
 
     # create all configs templates
-    create_file(file_name=asset_name + '_train_config.json',
-                path=os.path.join(os.path.join('assets/', asset_name), 'configs'),
-                permissions='w+',
-                content=train_config_file_content)
-    create_file(file_name=asset_name + '_forecast_config.json',
-                path=os.path.join(os.path.join('assets/', asset_name), 'configs'),
-                permissions='w+',
-                content=forecast_config_file_content)
+    create_file(
+        file_name=f'{asset_name}_train_config.json',
+        path=os.path.join(os.path.join('assets/', asset_name), 'configs'),
+        permissions='w+',
+        content=train_config_file_content,
+    )
+    create_file(
+        file_name=f'{asset_name}_forecast_config.json',
+        path=os.path.join(os.path.join('assets/', asset_name), 'configs'),
+        permissions='w+',
+        content=forecast_config_file_content,
+    )
 
 
 @commands.command("rename", help=cli_assets_help['rename'])
@@ -117,7 +137,6 @@ def rename(name, new_name, dir_name=None, show_success_msg=True, delete=False, f
         click.secho("ERROR: asset old name and new name are equal. please use a different name.", fg='red')
         return True
 
-    except_list = []
     if dir_name is None:
         old_name_path = os.path.join(os.getcwd(), 'assets', name)
     else:
@@ -138,11 +157,10 @@ def rename(name, new_name, dir_name=None, show_success_msg=True, delete=False, f
         # base renaming
         if name in rename_dictionary.keys():
             model_dict = rename_dictionary.get(name, {})
-            replace_files = model_dict.keys()
         else:
             model_dict = rename_dictionary.get('base', {})
-            replace_files = model_dict.keys()
-
+        replace_files = model_dict.keys()
+        except_list = []
         # rename model name file by file.
         for rf in replace_files:
             try:
@@ -184,14 +202,14 @@ def rename(name, new_name, dir_name=None, show_success_msg=True, delete=False, f
                                 new_name_formatted = word_format_func(new_name)
 
                                 if word_type == 'append-left':
-                                    if word_pattern is not None and isinstance(word_pattern, str):
-                                        word_pattern = old_name_formatted + word_pattern
-                                    elif word_pattern is not None and (
-                                            isinstance(word_pattern, list) or isinstance(word_pattern, np.array)):
-                                        wp_res = ''
-                                        for wp in word_pattern:
-                                            wp_res += old_name_formatted + wp + '|'
-                                        word_pattern = wp_res[:-1]
+                                    if word_pattern is not None:
+                                        if isinstance(word_pattern, str):
+                                            word_pattern = old_name_formatted + word_pattern
+                                        elif isinstance(
+                                            word_pattern, (list, np.array)
+                                        ):
+                                            wp_res = ''.join(old_name_formatted + wp + '|' for wp in word_pattern)
+                                            word_pattern = wp_res[:-1]
 
                                     old_name_formatted = old_name_formatted + word
                                     new_name_formatted = new_name_formatted + word
@@ -199,14 +217,14 @@ def rename(name, new_name, dir_name=None, show_success_msg=True, delete=False, f
                                     # 'append-right'
 
                                     # check for patterns type
-                                    if word_pattern is not None and isinstance(word_pattern, str):
-                                        word_pattern += old_name_formatted
-                                    elif word_pattern is not None and (
-                                            isinstance(word_pattern, list) or isinstance(word_pattern, np.array)):
-                                        wp_res = ''
-                                        for wp in word_pattern:
-                                            wp_res += wp + old_name_formatted + '|'
-                                        word_pattern = wp_res[:-1]
+                                    if word_pattern is not None:
+                                        if isinstance(word_pattern, str):
+                                            word_pattern += old_name_formatted
+                                        elif isinstance(
+                                            word_pattern, (list, np.array)
+                                        ):
+                                            wp_res = ''.join(wp + old_name_formatted + '|' for wp in word_pattern)
+                                            word_pattern = wp_res[:-1]
 
                                     old_name_formatted = word + old_name_formatted
                                     new_name_formatted = word + new_name_formatted
@@ -235,4 +253,7 @@ def rename(name, new_name, dir_name=None, show_success_msg=True, delete=False, f
             shutil.rmtree(old_name_path)
 
         if show_success_msg:
-            click.secho('Success: asset "' + name + '" was renamed to "' + new_name + '".', fg='green')
+            click.secho(
+                f'Success: asset "{name}" was renamed to "{new_name}".',
+                fg='green',
+            )

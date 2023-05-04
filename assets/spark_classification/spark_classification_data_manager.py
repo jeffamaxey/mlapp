@@ -79,8 +79,7 @@ class SparkClassificationDataManager(DataManager):
 
     def _clean_data(self, data):
         data_handling = self.data_settings.get('data_handling')
-        set_features_index = data_handling.get('set_features_index', [])
-        if set_features_index:
+        if set_features_index := data_handling.get('set_features_index', []):
             data = data.set_index(set_features_index)
 
         features_for_train = data_handling.get('features_for_train', [])
@@ -117,15 +116,9 @@ class SparkClassificationDataManager(DataManager):
             [data_df[colName].cast('int') if colType == 'boolean' else data_df[colName] for colName, colType in data_df.dtypes])
 
         data_df = self.feature_engineering_instance.transform_features(data_df, data_handling.get('features_handling'))
-        dates_transformation = data_handling.get('dates_transformation', {})
-        if dates_transformation:
-            for col in dates_transformation.get('columns', []):
+        if dates_transformation := data_handling.get('dates_transformation', {}):
+            for _ in dates_transformation.get('columns', []):
                 pass
-                # TODO:
-                # data_df = self.feature_engineering_instance.get_days_from_date(
-                #     data_df, col,
-                #     dates_transformation.get('extraction_date') if extraction_date is None else extraction_date)
-
         print("------------------------- handling y variable -------------------------")
         data_df = self.feature_engineering_instance.handle_y_variable(
             data_df, self.data_settings["variable_to_predict"], data_handling['y_variable'])

@@ -56,17 +56,13 @@ def flow_setup(current_run_id, config, input_dirs):
         'flow_id': current_run_id,
         'input_from_predecessor': [None]
     }
-    is_flow_summarizer = is_flow_summary(config)
-
-    if is_flow_summarizer:
+    if is_flow_summarizer := is_flow_summary(config):
         # load all jobs outputs
         for input_dir in input_dirs:
             load_job_output(jobs_outputs, input_dir)
-    else:
-        # load last job
-        if len(input_dirs) > 0:
-            jobs_outputs['input_from_predecessor'] = []
-            load_job_output(jobs_outputs, input_dirs[-1])
+    elif len(input_dirs) > 0:
+        jobs_outputs['input_from_predecessor'] = []
+        load_job_output(jobs_outputs, input_dirs[-1])
 
     return jobs_outputs
 

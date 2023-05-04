@@ -24,17 +24,7 @@ def run_script(ws, datastore, pipeline_name, instructions):
         run_config = create_runconfig(compute_target)
 
         # input directory in datastore
-        if len(last_output) == 0:
-            input_dir = None
-            # input_dir = DataReference(
-            #     datastore=datastore,
-            #     data_reference_name=DATA_REFERENCE_NAME + str(i),
-            #     path_on_datastore="flows/",
-            #     mode='download'
-            # )
-        else:
-            input_dir = last_output
-
+        input_dir = last_output if last_output else None
         # output directory in datastore
         output_dir = PipelineData(
             name=DATA_REFERENCE_NAME + str(i),
@@ -44,12 +34,13 @@ def run_script(ws, datastore, pipeline_name, instructions):
 
         # create pipeline step
         pipeline_step = create_mlapp_pipeline_step(
-            compute_target, run_config,
+            compute_target,
+            run_config,
             source_directory=os.getcwd(),
             entry_script=os.path.join("deployment", "aml_flow.py"),
             input_dir=input_dir,
             output_dir=output_dir,
-            param_name='config' + str(i)
+            param_name=f'config{str(i)}',
         )
 
         # add to pipeline

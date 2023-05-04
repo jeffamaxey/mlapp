@@ -12,7 +12,7 @@ def _get_handler(instance_type, handler_name):
     handler = instance_type.get(handler_name)
     if handler is not None:
         return handler
-    raise Exception("Handler %s not found" % str(handler_name))
+    raise Exception(f"Handler {str(handler_name)} not found")
 
 
 def database_handler(handler_name) -> DatabaseInterface:

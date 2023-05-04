@@ -68,12 +68,7 @@ class SQLAlchemyHandler(DatabaseInterface):
             result = self.conn.execute(query, tuple(params))  # Syntax error in query
             self.conn.close()
             self.engine.dispose()
-            if result.returns_rows:
-                # we return a list of any row that was fetched
-                return list(result)
-            else:
-                # number of rows matched by where criterion of an UPDATE or DELETE
-                return result.rowcount
+            return list(result) if result.returns_rows else result.rowcount
         except Exception as e:
             self._close_connection()
             raise e
@@ -155,9 +150,7 @@ class SQLAlchemyHandler(DatabaseInterface):
             q = session.query(Job)
             q = q.filter(Job.id == job_id)
 
-            # create or update
-            records = q.all()
-            if records:
+            if records := q.all():
                 records[0].status_code = 1
                 records[0].status_msg = 'running'
             else:
@@ -179,7 +172,7 @@ class SQLAlchemyHandler(DatabaseInterface):
 
         for index in columns:
             value = float(df[index])
-            query += f" when index = '{str(index)}' then {str(value)}"
+            query += f" when index = '{str(index)}' then {value}"
         query += ' end) where type=3 and index in (' + ','.join([f"'{x}'" for x in columns ]) + ')'
         self.execute_query(query)
 
@@ -249,11 +242,11 @@ class SQLAlchemyHandler(DatabaseInterface):
             param = params[param_index]
             new_placeholder = self.query_placeholder
 
-            if isinstance(param, list) or isinstance(param, tuple):
+            if isinstance(param, (list, tuple)):
                 new_params.extend(param)
                 new_placeholder = ', '.join([self.query_placeholder] * len(param))
                 if not bool(re.findall(r'\(\s*' + new_placeholder, query)):
-                    new_placeholder = '(' + new_placeholder + ')'
+                    new_placeholder = f'({new_placeholder})'
             else:
                 new_params.extend([param])
             query = re.sub(r'"?\{' + str(param_index) + '\}"?', new_placeholder, query)

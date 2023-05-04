@@ -13,18 +13,20 @@ class AdvancedRegressionDataManager(DataManager):
 
     @pipeline
     def clean_train_data(self, data):
-        missing_values = {}
         data_handling = self.data_settings.get('data_handling', {})
         features_handling = self.data_settings.get('features_handling', {})
         null_percentage = data_handling.get("feature_remove_by_null_percentage", 0.5)
         data = data.loc[:, data.isnull().mean() < null_percentage]
 
-        for feature in features_handling.keys():
-            missing_values[feature] = eval(features_handling[feature].get("fillna", "np.mean"))(data[feature].values)
-
+        missing_values = {
+            feature: eval(features_handling[feature].get("fillna", "np.mean"))(
+                data[feature].values
+            )
+            for feature in features_handling.keys()
+        }
         default_missing_features = list(set(data.columns).difference(set(list(features_handling.keys()))))
         default_missing_values = data[default_missing_features].mean(axis=0).to_dict()
-        missing_values.update(default_missing_values)
+        missing_values |= default_missing_values
         self.save_metadata('missing_values', missing_values)
 
         data = data.fillna(missing_values)
@@ -48,7 +50,11 @@ class AdvancedRegressionDataManager(DataManager):
         else:
             data.drop([self.model_settings['variable_to_predict']], axis=1, inplace=True)
             data = pd.DataFrame(
-                data=np.random.normal(data.mean().mean(), data.std().mean(), data.shape)[0:10], columns=data.columns)
+                data=np.random.normal(
+                    data.mean().mean(), data.std().mean(), data.shape
+                )[:10],
+                columns=data.columns,
+            )
         return data
     
     @pipeline
@@ -66,17 +72,15 @@ class AdvancedRegressionDataManager(DataManager):
             source_data = pd.DataFrame()
 
             # local file
-            if source_type == 'local':
+            if source_type == 'db':
+                source_data = self._load_data_from_db(sources[source_type]['query'], sources[source_type]['args'])
+
+            elif source_type == 'local':
                 for file_path in sources[source_type]['file_paths']:
                     local_path = os.path.join(os.getcwd(), file_path)
                     source_data = pd.concat([source_data, self._load_data_from_file(local_path)])
 
-            # database
-            if source_type == 'db':
-                source_data = self._load_data_from_db(sources[source_type]['query'], sources[source_type]['args'])
-
-            # s3 file store
-            if source_type == 's3':
+            elif source_type == 's3':
                 for bucket in sources[source_type]['buckets']:
                     for file_key in sources[source_type]['buckets'][bucket]['file_keys']:
                         source_local_file = self._load_file_from_file_store(bucket, file_key)
@@ -115,15 +119,15 @@ class AdvancedRegressionDataManager(DataManager):
             for col1 in columns_list:
                 for col2 in columns_list:
                     if col1 != col2:
-                        name = str(col1) + '_' + str(col2)
-                        reverse_name = str(col2) + '_' + str(col1)
+                        name = f'{str(col1)}_{str(col2)}'
+                        reverse_name = f'{str(col2)}_{str(col1)}'
                         if reverse_name not in list(data.columns):
                             data[name] = (data[col1] + 1) * (data[col2] + 1)
 
         # binning
         for feature_to_bin in data_handling.get("features_to_bin", []):
             full_bins = [data[feature_to_bin['name']].min() - 1] + \
-                        feature_to_bin['bins'] + [data[feature_to_bin['name']].max() + 1]
+                            feature_to_bin['bins'] + [data[feature_to_bin['name']].max() + 1]
 
             data[feature_to_bin['name'] + '_binned'] = pd.cut(
                 data[feature_to_bin['name']],
@@ -147,8 +151,7 @@ class AdvancedRegressionDataManager(DataManager):
     @pipeline
     def load_actuals_data(self, *args):
         index_to_y_true = self.model_settings.get('index_to_y_true', [])
-        df = pd.DataFrame(index_to_y_true, index=[0])
-        return df
+        return pd.DataFrame(index_to_y_true, index=[0])
 
     @pipeline
     def load_target_data(self, *args):

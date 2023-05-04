@@ -11,14 +11,17 @@ def spark_cut(df, col_name, bins, labels):
     :param labels: labels for each category. should be len(bins)-1
     :return: a spark dataframe with the specified column binned and labeled as specified.
     """
-    bucketizer = Bucketizer(splits=bins,
-                            inputCol=col_name,
-                            outputCol=col_name + '_binned')
+    bucketizer = Bucketizer(
+        splits=bins, inputCol=col_name, outputCol=f'{col_name}_binned'
+    )
 
     df = bucketizer.transform(df)
     label_array = F.array(*(F.lit(label) for label in labels))
-    df = df.withColumn(col_name, label_array.getItem(F.col(col_name + '_binned').cast('integer')))
-    df = df.drop(col_name + '_binned')
+    df = df.withColumn(
+        col_name,
+        label_array.getItem(F.col(f'{col_name}_binned').cast('integer')),
+    )
+    df = df.drop(f'{col_name}_binned')
     return df
 
 
@@ -70,7 +73,7 @@ def spark_select_dummies(data, column_prefix, targets, combine_to_other=False):
                 cols_to_combine.append(col)
             else:
                 data = data.drop(col)
-    if len(cols_to_combine)>0:
+    if cols_to_combine:
         data = data.withColumn(f'{column_prefix}_temp', sum(data[col] for col in cols_to_combine))
         data = data.withColumn(f'{column_prefix}_other', F.when(F.col(f'{column_prefix}_temp') > 0, 1).otherwise(0))
         data = data.drop(f'{column_prefix}_temp')

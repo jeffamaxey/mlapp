@@ -24,7 +24,7 @@ class MinioStorageHandler(FileStorageInterface):
                                      region=configuration['region'])
             logging.info("File storage: Successful connection")
         except KeyError as e:
-            logging.error("Missing parameter in file storage config %s" % str(e))
+            logging.error(f"Missing parameter in file storage config {str(e)}")
 
     def download_file(self, bucket_name, object_name, file_path, *args, **kwargs):
         """
@@ -49,9 +49,7 @@ class MinioStorageHandler(FileStorageInterface):
         try:
             self.minioClient.make_bucket(bucket_name)
         except S3Error as e:
-            if e.code == 'BucketAlreadyOwnedByYou':
-                pass
-            else:
+            if e.code != 'BucketAlreadyOwnedByYou':
                 raise e
         try:
             # with open(from_file_path, 'rb') as from_file:
@@ -72,8 +70,7 @@ class MinioStorageHandler(FileStorageInterface):
 
         try:
             objects = self.minioClient.list_objects(bucket_name, prefix=prefix, recursive=True)
-            for obj in objects:
-                files_names.append(obj.object_name.encode('utf-8'))
+            files_names.extend(obj.object_name.encode('utf-8') for obj in objects)
         except Exception as e:
             logging.error(e)
 

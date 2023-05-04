@@ -176,7 +176,7 @@ class TestAssets(unittest.TestCase):
             for model_key in models_to_test:
 
                 print('###############################################################################################')
-                print('                              ' + model_key)
+                print(f'                              {model_key}')
                 print('###############################################################################################')
 
                 model = TestAssets.models_available[model_key]

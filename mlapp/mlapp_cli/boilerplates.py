@@ -40,18 +40,15 @@ def install(name, force, new_name):
         try:
             if new_name is not None and isinstance(new_name, str):
                 if os.path.exists(os.path.join(os.getcwd(), 'assets', new_name)) and not force:
-                    click.secho('ERROR: asset "' + new_name + '" is already exists.', fg='red')
+                    click.secho(f'ERROR: asset "{new_name}" is already exists.', fg='red')
                     return
                 token = str(uuid.uuid4())
-                tmp_name = name + '_' + token
-                dst = dst + '_' + token
+                tmp_name = f'{name}_{token}'
+                dst = f'{dst}_{token}'
 
             if force and new_name is None:
                 shutil.rmtree(dst)
-                shutil.copytree(src, dst)
-            else:
-                shutil.copytree(src, dst)
-
+            shutil.copytree(src, dst)
             if new_name is not None and isinstance(new_name, str):
                 res = __rename__(name=name, new_name=new_name, dir_name=tmp_name, show_success_msg=False, force=force)
                 shutil.rmtree(dst)
@@ -92,8 +89,8 @@ def show():
         available_boilerplates = os.listdir(os.path.join(get_project_root(), 'assets'))
     click.echo("Available boilerplates:")
     for boilerplate in available_boilerplates:
-        if not boilerplate[0] == '_':
-            click.echo('[*] ' + boilerplate)
+        if boilerplate[0] != '_':
+            click.echo(f'[*] {boilerplate}')
 
 
 # todo: duplicated for internal use. find a better solution
@@ -107,7 +104,6 @@ def __rename__(name, new_name, dir_name=None, show_success_msg=True, delete=Fals
         click.secho("ERROR: mlapp boilerplate old name and your asset new name are equal. please use a different name or dont use rename option.", fg='red')
         return True
 
-    except_list = ["__pycache__"]
     if dir_name is None:
         old_name_path = os.path.join(os.getcwd(), 'assets', name)
     else:
@@ -130,11 +126,10 @@ def __rename__(name, new_name, dir_name=None, show_success_msg=True, delete=Fals
         # base renaming
         if name in rename_dictionary.keys():
             model_dict = rename_dictionary.get(name, {})
-            replace_files = model_dict.keys()
         else:
             model_dict = rename_dictionary.get('base', {})
-            replace_files = model_dict.keys()
-
+        replace_files = model_dict.keys()
+        except_list = ["__pycache__"]
         # rename model name file by file.
         for rf in replace_files:
             try:
@@ -176,14 +171,14 @@ def __rename__(name, new_name, dir_name=None, show_success_msg=True, delete=Fals
                                 new_name_formatted = word_format_func(new_name)
 
                                 if word_type == 'append-left':
-                                    if word_pattern is not None and isinstance(word_pattern, str):
-                                        word_pattern = old_name_formatted + word_pattern
-                                    elif word_pattern is not None and (
-                                            isinstance(word_pattern, list) or isinstance(word_pattern, np.array)):
-                                        wp_res = ''
-                                        for wp in word_pattern:
-                                            wp_res += old_name_formatted + wp + '|'
-                                        word_pattern = wp_res[:-1]
+                                    if word_pattern is not None:
+                                        if isinstance(word_pattern, str):
+                                            word_pattern = old_name_formatted + word_pattern
+                                        elif isinstance(
+                                            word_pattern, (list, np.array)
+                                        ):
+                                            wp_res = ''.join(old_name_formatted + wp + '|' for wp in word_pattern)
+                                            word_pattern = wp_res[:-1]
 
                                     old_name_formatted = old_name_formatted + word
                                     new_name_formatted = new_name_formatted + word
@@ -191,14 +186,14 @@ def __rename__(name, new_name, dir_name=None, show_success_msg=True, delete=Fals
                                     # 'append-right'
 
                                     # check for patterns type
-                                    if word_pattern is not None and isinstance(word_pattern, str):
-                                        word_pattern += old_name_formatted
-                                    elif word_pattern is not None and (
-                                            isinstance(word_pattern, list) or isinstance(word_pattern, np.array)):
-                                        wp_res = ''
-                                        for wp in word_pattern:
-                                            wp_res += wp + old_name_formatted + '|'
-                                        word_pattern = wp_res[:-1]
+                                    if word_pattern is not None:
+                                        if isinstance(word_pattern, str):
+                                            word_pattern += old_name_formatted
+                                        elif isinstance(
+                                            word_pattern, (list, np.array)
+                                        ):
+                                            wp_res = ''.join(wp + old_name_formatted + '|' for wp in word_pattern)
+                                            word_pattern = wp_res[:-1]
 
                                     old_name_formatted = word + old_name_formatted
                                     new_name_formatted = word + new_name_formatted
@@ -226,4 +221,7 @@ def __rename__(name, new_name, dir_name=None, show_success_msg=True, delete=Fals
             shutil.rmtree(old_name_path)
 
         if show_success_msg:
-            click.secho('Success: asset "' + name + '" was renamed to "' + new_name + '".', fg='green')
+            click.secho(
+                f'Success: asset "{name}" was renamed to "{new_name}".',
+                fg='green',
+            )

@@ -13,7 +13,7 @@ def create_mlapp_pipeline_step(compute_target, run_config, source_directory, ent
         default_value='{"pipelines_configs": [{"data_settings": {}, "model_settings": {}, '
                       '"job_settings":{"pipeline": "", "asset_name": ""}}]}')
 
-    arguments = [("--" + param_name), pipeline_param]
+    arguments = [f"--{param_name}", pipeline_param]
     if input_dir is not None or output_dir is not None:
         if input_dir is not None and not isinstance(input_dir, list):
             input_dir = [input_dir]
@@ -25,9 +25,7 @@ def create_mlapp_pipeline_step(compute_target, run_config, source_directory, ent
                          {'value': output_dir, 'str': OUTPUT_DATA_ARGUMENT}]:
             if dir_type['value'] is not None:
                 for i in range(len(dir_type['value'])):
-                    arguments.append('--' + dir_type['str'] + str(i))
-                    arguments.append(dir_type['value'][i])
-
+                    arguments.extend(('--' + dir_type['str'] + str(i), dir_type['value'][i]))
     # pipeline step
     return [PythonScriptStep(
         script_name=entry_script,

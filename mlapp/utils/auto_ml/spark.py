@@ -54,15 +54,10 @@ class CrossValidationSpark(CrossValidator):
         subModels = None
         collectSubModelsParam = self.getCollectSubModels()
         if collectSubModelsParam:
-            subModels = [[None for j in range(numModels)] for i in range(nFolds)]
+            subModels = [[None for _ in range(numModels)] for _ in range(nFolds)]
 
         for i in range(nFolds):
-            if self.sequentialIndex:
-                pass
-                # todo pass a column name to base the split on. make sure the split conforms to sklearn norms.
-                # idx = [1,2,3,4]
-                # training.where(~col("id").isin(idx)).show()
-            else:
+            if not self.sequentialIndex:
                 validateLB = i * h
                 validateUB = (i + 1) * h
                 condition = (df[randCol] >= validateLB) & (df[randCol] < validateUB)
@@ -118,7 +113,7 @@ class _AutoMLSpark(_AutoMLBase):
             raise AutoMLException("ERROR: model family not supported.")
 
         for data in [train, test]:
-            if not (isinstance(data, DataFrame) or isinstance(data, RDD)):
+            if not (isinstance(data, (DataFrame, RDD))):
                 raise AutoMLException("ERROR: data type should be PySpark RDD or DataFrame.")
 
             if kwargs['variable_to_predict'] not in data.columns:
@@ -181,9 +176,7 @@ class _AutoMLSpark(_AutoMLBase):
     def _calc_cv_df(self, model_key, metrics, param_map):
         new_param_map = []
         for d in param_map:
-            new_dict = {}
-            for k, v in d.items():
-                new_dict[k.name] = v
+            new_dict = {k.name: v for k, v in d.items()}
             new_param_map.append(new_dict)
         res = pd.DataFrame(new_param_map)
         res.insert(0, 'std', np.std(metrics, axis=1))
@@ -193,8 +186,9 @@ class _AutoMLSpark(_AutoMLBase):
 
     def _get_cv_results(self, estimator_family, searches, features, scoring, greater_is_better, *args, **kwargs):
         keys = list(searches.keys())
-        is_larger_better = self._get_scorer(estimator_family, scoring, *args, **kwargs).isLargerBetter()
-        if is_larger_better:
+        if is_larger_better := self._get_scorer(
+            estimator_family, scoring, *args, **kwargs
+        ).isLargerBetter():
             best_model_key = keys[int(np.argmax([max(searches[k][0].avgMetrics) for k in keys]))]
         else:
             best_model_key = keys[int(np.argmin([min(searches[k][0].avgMetrics) for k in keys]))]

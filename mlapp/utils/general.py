@@ -24,17 +24,16 @@ def recursive_dict_update(d, u):
 
 
 def search_key_recursive( d, key):
-    if hasattr(d, 'items'):
-        for k, v in d.items():
-            if key == k:
-                yield v
-            if isinstance(v, dict):
-                for result in search_key_recursive(v, key):
-                    yield result
-            elif isinstance(v, list):
-                for i in v:
-                    for result in search_key_recursive(i, key):
-                        yield result
+    if not hasattr(d, 'items'):
+        return
+    for k, v in d.items():
+        if key == k:
+            yield v
+        if isinstance(v, dict):
+            yield from search_key_recursive(v, key)
+        elif isinstance(v, list):
+            for i in v:
+                yield from search_key_recursive(i, key)
 
 
 def __convert__(data):
@@ -59,8 +58,7 @@ def read_json_file(path, file_name=None):
 
 
 def load_json_unicode(body):
-    data = json.loads(literal_eval(body))
-    return data
+    return json.loads(literal_eval(body))
 
 
 class NumpyEncoder(json.JSONEncoder):
@@ -84,8 +82,7 @@ def get_project_root():
 
 
 def load_pickle_to_object(path):
-    obj = pickle.load(open(path, 'rb'))
-    return obj
+    return pickle.load(open(path, 'rb'))
 
 
 def save_object_to_pickle(model, path):
@@ -98,21 +95,21 @@ def extract_zip_file(file_path):
         zip_ref.extractall(file_path)
         zip_ref.close()
     except Exception as e:
-        raise RuntimeError('failed to unzip file: ' + str(e))
+        raise RuntimeError(f'failed to unzip file: {str(e)}')
 
 
 def compress_to_zip_file(file_path):
     try:
-        zip_ref = zipfile.ZipFile(file_path + ".zip", 'w', zipfile.ZIP_DEFLATED)
+        zip_ref = zipfile.ZipFile(f"{file_path}.zip", 'w', zipfile.ZIP_DEFLATED)
         zip_ref.write(file_path)
         zip_ref.close()
     except Exception as e:
-        raise RuntimeError('failed to compress file: ' + str(e))
+        raise RuntimeError(f'failed to compress file: {str(e)}')
 
 
 def save_object_tempfile(file_name, obj):
     tempdir = tempfile.mkdtemp()
-    file_path = os.path.join(tempdir, file_name + '.pkl')
+    file_path = os.path.join(tempdir, f'{file_name}.pkl')
     with open(file_path, 'wb') as fp:
         pickle.dump(obj, fp)
     return file_path
@@ -209,7 +206,7 @@ def save_figure_to_png(figure, path, file_name):
             FigureCanvas(figure)
             figure.savefig(path)
         except Exception as e:
-            raise Exception('Failed to save %s plot image.' % (str(file_name)))
+            raise Exception(f'Failed to save {str(file_name)} plot image.')
 
 
 def read_files_names_from_local_storage(prefix, local_storage_path):
@@ -219,7 +216,12 @@ def read_files_names_from_local_storage(prefix, local_storage_path):
     @param local_storage_path: str, local path to look for files.
     @return: list of strings, file names.
     '''
-    return list(map(lambda f: os.path.basename(f), glob.glob(os.path.join(local_storage_path, prefix + "_*"))))
+    return list(
+        map(
+            lambda f: os.path.basename(f),
+            glob.glob(os.path.join(local_storage_path, f"{prefix}_*")),
+        )
+    )
 
 
 def create_tempdir(name):
@@ -235,10 +237,8 @@ def create_directory(directory_name, path=''):
     full_directory_path = os.path.join(path, directory_name)
     full_directory_path = os.path.join(os.getcwd(), full_directory_path)
 
-    # checks if directory already exists, if not then creating it.
-    if not os.path.exists(full_directory_path):
-        os.makedirs(full_directory_path)
-        return full_directory_path
-    else:
-        raise Exception('ERROR: path %s already exists.' % str(full_directory_path))
+    if os.path.exists(full_directory_path):
+        raise Exception(f'ERROR: path {str(full_directory_path)} already exists.')
+    os.makedirs(full_directory_path)
+    return full_directory_path
 

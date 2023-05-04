@@ -120,14 +120,12 @@ class AmlModelStorageHandler(FileStorageInterface):
                 file_name = os.path.splitext(os.path.basename(file_path))[0]
                 image_name = '_'.join(file_name.split('_')[1:])
                 self.run.log_image(name=image_name, path=output_path)
-        # log metadata
-        else:
-            if bucket_name == self.metadata_bucket:
-                model_metadata = read_json_file(file_path)
-                scores = model_metadata.get('models', {}).get('scores', None)
-                if scores is not None:
-                    for score_key, score_value in scores.items():
-                        self.run.log(name=score_key, value=score_value)
+        elif bucket_name == self.metadata_bucket:
+            model_metadata = read_json_file(file_path)
+            scores = model_metadata.get('models', {}).get('scores', None)
+            if scores is not None:
+                for score_key, score_value in scores.items():
+                    self.run.log(name=score_key, value=score_value)
 
     def list_files(self, bucket_name, prefix="", *args, **kwargs):
         """
@@ -155,7 +153,13 @@ class AmlModelStorageHandler(FileStorageInterface):
             # get files from current_id folder and temporary_storage folder
             list_files = os.listdir(os.path.join(current_id, AML_MLAPP_FOLDER))
             list_files_extra = list(
-                map(lambda f: os.path.basename(f), glob.glob(os.path.join(self.temporary_storage, current_id + "_*"))))
+                map(
+                    lambda f: os.path.basename(f),
+                    glob.glob(
+                        os.path.join(self.temporary_storage, f"{current_id}_*")
+                    ),
+                )
+            )
             list_files.extend(list_files_extra)
             return list_files
 

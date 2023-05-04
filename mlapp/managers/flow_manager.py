@@ -54,7 +54,7 @@ class FlowManager(object):
         '''
         if self.pipelines_configs is None:
             raise ConfigKeyError("'pipelines_configs' property is missing in your config file.'")
-        print(">>>>>> Running flow" + self.flow_name + "...")
+        print(f">>>>>> Running flow{self.flow_name}...")
         run_ids = []
         pipelines_metadata = []
         for i in range(len(self.pipelines_configs)):
@@ -64,7 +64,7 @@ class FlowManager(object):
             start_time = time.strftime(TIME_FORMAT)
             asset_name = job_config['job_settings'].get('asset_name', i)
             asset_label = job_config['job_settings'].get('asset_label', '')
-            print(">>>>>> Running model: {}...".format(asset_name))
+            print(f">>>>>> Running model: {asset_name}...")
 
             run_ids.append(str(uuid.uuid4()))
             pipelines_metadata.append({
@@ -87,8 +87,8 @@ class FlowManager(object):
                     except KeyError as e:
                         print(e)
                         raise IoManagerException(
-                            "Flow job #{}: Error: cannot find input key: {} in the "
-                            "results dictionary from your model:{} due to: {}".format(i, k, asset_name, str(e)))
+                            f"Flow job #{i}: Error: cannot find input key: {k} in the results dictionary from your model:{asset_name} due to: {str(e)}"
+                        )
 
             cur_results = cur_job_manager.run_pipeline(**kwargs['input_from_predecessor'])
             self.jobs_results['models_results'].append(cur_results)
@@ -99,12 +99,13 @@ class FlowManager(object):
                         return_dict[output_key] = cur_results.search_key_value(output_key)
                     except:
                         raise IoManagerException(
-                            'return value {} from asset: {} is not existing '.format(output_key, asset_name))
+                            f'return value {output_key} from asset: {asset_name} is not existing '
+                        )
             self.flow_data['jobs_outputs'].append(return_dict)
 
             end_time = dt.datetime.strptime(
                 time.strftime(TIME_FORMAT), TIME_FORMAT) - dt.datetime.strptime(start_time, TIME_FORMAT)
-            print(">>>>>> It took me, {}.".format(end_time))
+            print(f">>>>>> It took me, {end_time}.")
 
         # insert the results data into the data_settings config:
         # self.flow_config['data_settings']['flow_data'] = self.flow_data

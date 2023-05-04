@@ -23,29 +23,32 @@ class WrapperInterface:
         Populates the `self._handlers` and `self_main_handlers` variables depending on the set environment
         :param handler_type: used for filtering services by the handler type
         """
-        if not self.initialized:
-            for service_name in settings.get('services', []):
-                service_item = settings['services'][service_name]
-                if 'type' not in service_item:
-                    raise Exception("'{}' service is missing 'type' key, must be filled in config.py with"
-                                    " the one of the following: database/file_storage/database/spark".format(service_name))
-                if service_item['type'] == handler_type:
-                    try:
-                        self._handlers[service_name] = service_item['handler'](service_item.get('settings', {}))
+        if self.initialized:
+            return
+        for service_name in settings.get('services', []):
+            service_item = settings['services'][service_name]
+            if 'type' not in service_item:
+                raise Exception(
+                    f"'{service_name}' service is missing 'type' key, must be filled in config.py with the one of the following: database/file_storage/database/spark"
+                )
+            if service_item['type'] == handler_type:
+                try:
+                    self._handlers[service_name] = service_item['handler'](service_item.get('settings', {}))
 
-                        # set it as main
-                        if service_item.get('main', False):
-                            self._main_handlers.append(service_name)
+                    # set it as main
+                    if service_item.get('main', False):
+                        self._main_handlers.append(service_name)
 
-                    except SkipServiceException as e:
-                        pass  # skipping this service
-                    except Exception as e:
-                        if service_item['handler'] is None:
-                            raise Exception("'{}' service of type '{}' is missing a python library installation."
-                                            .format(service_name, service_item.get('type')))
-                        else:
-                            raise e
-            self.initialized = True
+                except SkipServiceException as e:
+                    pass  # skipping this service
+                except Exception as e:
+                    if service_item['handler'] is None:
+                        raise Exception(
+                            f"'{service_name}' service of type '{service_item.get('type')}' is missing a python library installation."
+                        )
+                    else:
+                        raise e
+        self.initialized = True
 
     def get(self, handler_name):
         """

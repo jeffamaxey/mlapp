@@ -267,10 +267,10 @@ class TestCliMethods(unittest.TestCase):
 
             assert os.path.exists(configs_path)
 
-            data_manager_name = asset_name + '_data_manager.py'
-            model_manager_name = asset_name + '_model_manager.py'
-            train_config = asset_name + '_train_config.json'
-            forecast_config = asset_name + '_forecast_config.json'
+            data_manager_name = f'{asset_name}_data_manager.py'
+            model_manager_name = f'{asset_name}_model_manager.py'
+            train_config = f'{asset_name}_train_config.json'
+            forecast_config = f'{asset_name}_forecast_config.json'
             assert os.path.exists(os.path.join(path_model_dir, data_manager_name))
             assert os.path.exists(os.path.join(path_model_dir, model_manager_name))
             assert os.path.exists(os.path.join(configs_path, train_config))
@@ -317,10 +317,10 @@ class TestCliMethods(unittest.TestCase):
             assert result.exit_code == 0
 
 
-            data_manager_name = asset_name + '_data_manager.py'
-            model_manager_name = asset_name + '_model_manager.py'
-            train_config = asset_name + '_train_config.json'
-            forecast_config = asset_name + '_forecast_config.json'
+            data_manager_name = f'{asset_name}_data_manager.py'
+            model_manager_name = f'{asset_name}_model_manager.py'
+            train_config = f'{asset_name}_train_config.json'
+            forecast_config = f'{asset_name}_forecast_config.json'
             assert os.path.exists(path_model_dir)
             assert os.path.exists(configs_path)
             assert os.path.exists(os.path.join(path_model_dir, data_manager_name))
@@ -338,10 +338,10 @@ class TestCliMethods(unittest.TestCase):
             # checking renamed files
             path_model_dir = os.path.join(models_dir_path, asset_name_renamed)
             configs_path = os.path.join(path_model_dir, 'configs')
-            data_manager_name = asset_name_renamed + '_data_manager.py'
-            model_manager_name = asset_name_renamed + '_model_manager.py'
-            train_config = asset_name_renamed + '_train_config.json'
-            forecast_config = asset_name_renamed + '_forecast_config.json'
+            data_manager_name = f'{asset_name_renamed}_data_manager.py'
+            model_manager_name = f'{asset_name_renamed}_model_manager.py'
+            train_config = f'{asset_name_renamed}_train_config.json'
+            forecast_config = f'{asset_name_renamed}_forecast_config.json'
             assert os.path.exists(path_model_dir)
             assert os.path.exists(configs_path)
             assert os.path.exists(os.path.join(path_model_dir, data_manager_name))
@@ -389,10 +389,10 @@ class TestCliMethods(unittest.TestCase):
             # checks exit code success
             assert result.exit_code == 0
 
-            data_manager_name = asset_name + '_data_manager.py'
-            model_manager_name = asset_name + '_model_manager.py'
-            train_config = asset_name + '_train_config.json'
-            forecast_config = asset_name + '_forecast_config.json'
+            data_manager_name = f'{asset_name}_data_manager.py'
+            model_manager_name = f'{asset_name}_model_manager.py'
+            train_config = f'{asset_name}_train_config.json'
+            forecast_config = f'{asset_name}_forecast_config.json'
             assert os.path.exists(path_model_dir)
             assert os.path.exists(configs_path)
             assert os.path.exists(os.path.join(path_model_dir, data_manager_name))
@@ -402,7 +402,9 @@ class TestCliMethods(unittest.TestCase):
 
             # calling rename command with delete equals True
             asset_name_renamed = 'cli_asset_test_renamed'
-            result = runner.invoke(rename_asset, "" + asset_name + " " + asset_name_renamed + " --delete")
+            result = runner.invoke(
+                rename_asset, f"{asset_name} {asset_name_renamed} --delete"
+            )
 
             # checks exit code success
             assert result.exit_code == 0
@@ -410,10 +412,10 @@ class TestCliMethods(unittest.TestCase):
             # checking renamed files
             new_path_model_dir = os.path.join(models_dir_path, asset_name_renamed)
             configs_path = os.path.join(new_path_model_dir, 'configs')
-            data_manager_name = asset_name_renamed + '_data_manager.py'
-            model_manager_name = asset_name_renamed + '_model_manager.py'
-            train_config = asset_name_renamed + '_train_config.json'
-            forecast_config = asset_name_renamed + '_forecast_config.json'
+            data_manager_name = f'{asset_name_renamed}_data_manager.py'
+            model_manager_name = f'{asset_name_renamed}_model_manager.py'
+            train_config = f'{asset_name_renamed}_train_config.json'
+            forecast_config = f'{asset_name_renamed}_forecast_config.json'
             assert not os.path.exists(path_model_dir)
             assert os.path.exists(new_path_model_dir)
             assert os.path.exists(configs_path)
@@ -461,14 +463,16 @@ class TestCliMethods(unittest.TestCase):
 
             path_model_dir = os.path.join(models_dir_path, asset_name)
             configs_path = os.path.join(path_model_dir, 'configs')
-            data_manager_name = asset_name + '_data_manager.py'
-            visualizations_name = asset_name + '_visualizations.py'
-            feature_engineering_name = asset_name + '_feature_engineering.py'
-            model_manager_name = asset_name + '_model_manager.py'
-            train_config = asset_name + '_train_config.py'
-            forecast_config = asset_name + '_forecast_config.py'
-            feature_engineering_config = asset_name + '_feature_engineering_config.py'
-            reuse_features_and_train_config = asset_name + '_reuse_features_and_train_config.py'
+            data_manager_name = f'{asset_name}_data_manager.py'
+            visualizations_name = f'{asset_name}_visualizations.py'
+            feature_engineering_name = f'{asset_name}_feature_engineering.py'
+            model_manager_name = f'{asset_name}_model_manager.py'
+            train_config = f'{asset_name}_train_config.py'
+            forecast_config = f'{asset_name}_forecast_config.py'
+            feature_engineering_config = f'{asset_name}_feature_engineering_config.py'
+            reuse_features_and_train_config = (
+                f'{asset_name}_reuse_features_and_train_config.py'
+            )
             assert os.path.exists(path_model_dir)
             assert os.path.exists(configs_path)
             assert os.path.exists(os.path.join(path_model_dir, data_manager_name))
@@ -513,21 +517,25 @@ class TestCliMethods(unittest.TestCase):
             # invoke create model command
             original_asset_name = "classification"
             asset_name = "classification_renamed"
-            result = runner.invoke(boilerplates_install, "" + original_asset_name + " -r " + asset_name)
+            result = runner.invoke(
+                boilerplates_install, f"{original_asset_name} -r {asset_name}"
+            )
 
             # checks exit code success
             assert result.exit_code == 0
 
             path_model_dir = os.path.join(models_dir_path, asset_name)
             configs_path = os.path.join(path_model_dir, 'configs')
-            data_manager_name = asset_name + '_data_manager.py'
-            visualizations_name = asset_name + '_visualizations.py'
-            feature_engineering_name = asset_name + '_feature_engineering.py'
-            model_manager_name = asset_name + '_model_manager.py'
-            train_config = asset_name + '_train_config.py'
-            forecast_config = asset_name + '_forecast_config.py'
-            feature_engineering_config = asset_name + '_feature_engineering_config.py'
-            reuse_features_and_train_config = asset_name + '_reuse_features_and_train_config.py'
+            data_manager_name = f'{asset_name}_data_manager.py'
+            visualizations_name = f'{asset_name}_visualizations.py'
+            feature_engineering_name = f'{asset_name}_feature_engineering.py'
+            model_manager_name = f'{asset_name}_model_manager.py'
+            train_config = f'{asset_name}_train_config.py'
+            forecast_config = f'{asset_name}_forecast_config.py'
+            feature_engineering_config = f'{asset_name}_feature_engineering_config.py'
+            reuse_features_and_train_config = (
+                f'{asset_name}_reuse_features_and_train_config.py'
+            )
             assert os.path.exists(path_model_dir)
             assert os.path.exists(configs_path)
             assert os.path.exists(os.path.join(path_model_dir, data_manager_name))
@@ -578,11 +586,11 @@ class TestCliMethods(unittest.TestCase):
 
             path_model_dir = os.path.join(models_dir_path, asset_name)
             configs_path = os.path.join(path_model_dir, 'configs')
-            data_manager_name = asset_name + '_data_manager.py'
-            model_manager_name = asset_name + '_model_manager.py'
-            train_config = asset_name + '_train_config.py'
-            forecast_config = asset_name + '_forecast_config.py'
-            prediction_accuracy_config = asset_name + '_prediction_accuracy_config.json'
+            data_manager_name = f'{asset_name}_data_manager.py'
+            model_manager_name = f'{asset_name}_model_manager.py'
+            train_config = f'{asset_name}_train_config.py'
+            forecast_config = f'{asset_name}_forecast_config.py'
+            prediction_accuracy_config = f'{asset_name}_prediction_accuracy_config.json'
             assert os.path.exists(path_model_dir)
             assert os.path.exists(configs_path)
             assert os.path.exists(os.path.join(path_model_dir, data_manager_name))

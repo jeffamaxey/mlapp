@@ -12,7 +12,7 @@ class LivyHandler(SparkInterface):
         Initializes the HiveHandler with it's special connection string
         :param settings: settings from `mlapp > config.py` depending on handler type name.
         """
-        settings = {key: value for (key, value) in settings.items() if not value == ""}
+        settings = {key: value for (key, value) in settings.items() if value != ""}
 
         self.livy_settings = settings
 

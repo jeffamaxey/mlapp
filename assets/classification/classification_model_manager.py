@@ -86,7 +86,7 @@ class ClassificationModelManager(ModelManager):
             else:
                 print('Warning: "n_samples" can be an Integer Type that <= number of data samples or Float type (ratio)'
                       ' that bigger than 0 and smaller or equal to 1 (0 < n_sample <= 1) \n Taking Full Data!')
-            print('After data sampling: (' + repr(data.shape[0]) + ',' + repr(data.shape[1]) + ')')
+            print(f'After data sampling: ({repr(data.shape[0])},{repr(data.shape[1])})')
 
         return data
 

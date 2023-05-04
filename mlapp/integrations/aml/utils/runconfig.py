@@ -9,9 +9,5 @@ def create_runconfig(aml_compute, env=None):
     # Use the aml_compute you created above.
     aml_run_config.target = aml_compute
 
-    if env:
-        aml_run_config.environment = env
-    else:
-        aml_run_config.environment = create_env_from_requirements()
-
+    aml_run_config.environment = env if env else create_env_from_requirements()
     return aml_run_config

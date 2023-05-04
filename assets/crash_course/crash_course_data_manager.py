@@ -6,8 +6,7 @@ from mlapp.utils.features.pandas import extend_dataframe
 class CrashCourseDataManager(DataManager):
     @pipeline
     def load_train_data(self, *args):
-        data = pd.read_csv(self.data_settings["file_path"])
-        return data
+        return pd.read_csv(self.data_settings["file_path"])
 
     @pipeline
     def clean_train_data(self, data):
@@ -40,8 +39,7 @@ class CrashCourseDataManager(DataManager):
 
     @pipeline
     def load_forecast_data(self,*args):
-        data = pd.read_csv(self.data_settings["file_path"])
-        return data
+        return pd.read_csv(self.data_settings["file_path"])
 
     @pipeline
     def clean_forecast_data(self, data):

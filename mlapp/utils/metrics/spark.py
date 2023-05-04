@@ -28,28 +28,44 @@ def classification(train_predictions, test_predictions, train_actuals=None, test
 
     scores = {}
     for label in labels:
-        scores.update({
-            'precision (' + str(label) + ') (train set)': evaluatorMulti.evaluate(
-                train_metrics, {evaluatorMulti.metricName: "weightedPrecision"}),
-            'recall (' + str(label) + ') (test set)': evaluatorMulti.evaluate(
-                train_metrics, {evaluatorMulti.metricName: "weightedRecall"}),
-            'f1 score (' + str(label) + ') (train set)': evaluatorMulti.evaluate(
-                train_metrics, {evaluatorMulti.metricName: "f1"}),
-            'accuracy (' + str(label) + ') (train set)': evaluatorMulti.evaluate(
-                train_metrics, {evaluatorMulti.metricName: "accuracy"}),
-            'areaUnderROC (' + str(label) + ') (train set)': evaluatorRoc.evaluate(train_metrics),
-            'areaUnderPR (' + str(label) + ') (train set)': evaluatorPR.evaluate(train_metrics),
-            'precision (' + str(label) + ') (test set)': evaluatorMulti.evaluate(
-                test_metrics, {evaluatorMulti.metricName: "weightedPrecision"}),
-            'recall (' + str(label) + ') (test set)': evaluatorMulti.evaluate(
-                test_metrics, {evaluatorMulti.metricName: "weightedRecall"}),
-            'f1_score (' + str(label) + ') (test set)': evaluatorMulti.evaluate(
-                test_metrics, {evaluatorMulti.metricName: "f1"}),
-            'accuracy (' + str(label) + ') (test set)': evaluatorMulti.evaluate(
-                test_metrics, {evaluatorMulti.metricName: "accuracy"}),
-            'areaUnderROC (' + str(label) + ') (test set)': evaluatorRoc.evaluate(test_metrics),
-            'areaUnderPR (' + str(label) + ') (test set)': evaluatorPR.evaluate(test_metrics)
-        })
+        scores |= {
+            f'precision ({str(label)}) (train set)': evaluatorMulti.evaluate(
+                train_metrics, {evaluatorMulti.metricName: "weightedPrecision"}
+            ),
+            f'recall ({str(label)}) (test set)': evaluatorMulti.evaluate(
+                train_metrics, {evaluatorMulti.metricName: "weightedRecall"}
+            ),
+            f'f1 score ({str(label)}) (train set)': evaluatorMulti.evaluate(
+                train_metrics, {evaluatorMulti.metricName: "f1"}
+            ),
+            f'accuracy ({str(label)}) (train set)': evaluatorMulti.evaluate(
+                train_metrics, {evaluatorMulti.metricName: "accuracy"}
+            ),
+            f'areaUnderROC ({str(label)}) (train set)': evaluatorRoc.evaluate(
+                train_metrics
+            ),
+            f'areaUnderPR ({str(label)}) (train set)': evaluatorPR.evaluate(
+                train_metrics
+            ),
+            f'precision ({str(label)}) (test set)': evaluatorMulti.evaluate(
+                test_metrics, {evaluatorMulti.metricName: "weightedPrecision"}
+            ),
+            f'recall ({str(label)}) (test set)': evaluatorMulti.evaluate(
+                test_metrics, {evaluatorMulti.metricName: "weightedRecall"}
+            ),
+            f'f1_score ({str(label)}) (test set)': evaluatorMulti.evaluate(
+                test_metrics, {evaluatorMulti.metricName: "f1"}
+            ),
+            f'accuracy ({str(label)}) (test set)': evaluatorMulti.evaluate(
+                test_metrics, {evaluatorMulti.metricName: "accuracy"}
+            ),
+            f'areaUnderROC ({str(label)}) (test set)': evaluatorRoc.evaluate(
+                test_metrics
+            ),
+            f'areaUnderPR ({str(label)}) (test set)': evaluatorPR.evaluate(
+                test_metrics
+            ),
+        }
     return scores
 
 

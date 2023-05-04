@@ -49,14 +49,20 @@ class SparkClassificationFeatureEngineering(object):
                         data_df = spark_cut(data_df, feature_to_bin['name'], bins=bins,
                                                  labels=[f'Q_{str(q)[2]}0%' for q in quantiles]+['Q100%'])
 
-                    if isinstance(feature_to_bin['bins'][0], int):
-                    # an integer (n) was provided. bin to n identical sections.
-                        if len(data_df.select(feature_to_bin['name']).distinct().collect()) > feature_to_bin['bins'][0]:
-                            min_val = data_df.agg({feature_to_bin['name']: 'min'}).collect()[0][0] -1
-                            max_val = data_df.agg({feature_to_bin['name']: 'max'}).collect()[0][0] +1
-                            bins = np.linspace(min_val, max_val, feature_to_bin['bins'][0])
-                            data_df = spark_cut(data_df, feature_to_bin['name'], bins=bins,
-                                                     labels=range(feature_to_bin['bins'][0]-1))
+                    if (
+                        isinstance(feature_to_bin['bins'][0], int)
+                        and len(
+                            data_df.select(feature_to_bin['name'])
+                            .distinct()
+                            .collect()
+                        )
+                        > feature_to_bin['bins'][0]
+                    ):
+                        min_val = data_df.agg({feature_to_bin['name']: 'min'}).collect()[0][0] -1
+                        max_val = data_df.agg({feature_to_bin['name']: 'max'}).collect()[0][0] +1
+                        bins = np.linspace(min_val, max_val, feature_to_bin['bins'][0])
+                        data_df = spark_cut(data_df, feature_to_bin['name'], bins=bins,
+                                                 labels=range(feature_to_bin['bins'][0]-1))
                 else:
                     # bin according to the provided bins.
                     min_val = data_df.agg({feature_to_bin['name']: "min"}).collect()[0][0]
@@ -155,7 +161,7 @@ class SparkClassificationFeatureEngineering(object):
                 categorical_values = categorical_values.astype(data_df.columns.dtype)
                 feature_output_name = feature_original_name + "_"
                 for val in categorical_values:
-                    feature_output_name += "_" + str(val)
+                    feature_output_name += f"_{str(val)}"
 
                 # adds combined feature to results DataFrame
                 results_df[feature_output_name] = combined_feature
@@ -189,7 +195,7 @@ class SparkClassificationFeatureEngineering(object):
         if not isinstance(data, DataFrame):
             raise UnsupportedFileType("Error: data type should be spark Dataframe")
 
-        if len(list(stored_missing_values.keys())) > 0:
+        if list(stored_missing_values.keys()):
             data = data.fillna(stored_missing_values)
             missing_values = stored_missing_values
         else:
@@ -204,7 +210,7 @@ class SparkClassificationFeatureEngineering(object):
                 else:
                     filling_missing_value = default_filling
 
-                if filling_missing_value in methods.keys():
+                if filling_missing_value in methods:
                     filling_missing_value = filling_missing_value.lower()
                     val = data.select(methods[filling_missing_value](data[feature_key])).collect()[0][0]
                     data = data.fillna({feature_key: val})
@@ -242,9 +248,9 @@ class SparkClassificationFeatureEngineering(object):
             for feature_transformation_method in feature_transformation_methods:
                 data = data.withColumn(feature_key, eval(feature_transformation_method)(data[feature_key]))
 
-            # applying dummies
-            feature_dummies_flag = features_handling[feature_key].get("dummies", False)
-            if feature_dummies_flag:
+            if feature_dummies_flag := features_handling[feature_key].get(
+                "dummies", False
+            ):
                 data = spark_dummies(data, feature_key)
 
         return data
@@ -295,9 +301,7 @@ class SparkClassificationFeatureEngineering(object):
                             return "DATETIME", date_format
                         except:
                             continue
-                    return "TEXT", None
-                else:
-                    return "TEXT", None
+                return "TEXT", None
         else:
             return "TEXT", None
 

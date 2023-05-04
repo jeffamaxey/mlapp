@@ -34,12 +34,8 @@ def add(service):
         return
 
     env_full_path = os.path.join(os.getcwd(), env_filename)
-    credentials = {}
-    service_key_cache = {}
     if os.path.exists(env_full_path):
-        service_keys = add_services_options.get(service, False)
-        if service_keys:
-
+        if service_keys := add_services_options.get(service, False):
             # get service name from user
             while True:
                 service_name = validate_str(input("Please name your service (to access the service in the code): "))
@@ -49,11 +45,13 @@ def add(service):
                 else:
                     click.secho("ERROR: Service name is required and must be unique, please try again.", fg='red')
 
+            credentials = {}
+            service_key_cache = {}
             for key in service_keys:
                 while True:
                     try:
                         body = service_keys[key]
-                        new_key = service_name + '_' + key
+                        new_key = f'{service_name}_{key}'
                         if isinstance(body, str):
                             credentials[new_key] = body
                         else:
@@ -62,12 +60,20 @@ def add(service):
 
                             # check if this key depends on answer from previous key
                             prev_key = body.get("preceding_key", None)
-                            if prev_key is not None and service_key_cache.get(prev_key) is not None:
-                                if service_key_cache[prev_key] != body.get("preceding_key_response"):
-                                    break
+                            if (
+                                prev_key is not None
+                                and service_key_cache.get(prev_key) is not None
+                                and service_key_cache[prev_key]
+                                != body.get("preceding_key_response")
+                            ):
+                                break
 
                             # create message to display on the terminal.
-                            message = display_name + " (" + short_description + "): " if short_description != '' else key + ": "
+                            message = (
+                                f"{display_name} ({short_description}): "
+                                if short_description != ''
+                                else f"{key}: "
+                            )
 
                             # get user input
                             user_input = clean_spaces(input(message))
@@ -79,7 +85,7 @@ def add(service):
                             if default_value is not None and user_input == EMPTY_INPUT:
                                 credentials[new_key] = default_value
                             elif user_input == EMPTY_INPUT and is_required:
-                                raise Exception("'" + display_name + "' is required, please enter a valid value.")
+                                raise Exception(f"'{display_name}' is required, please enter a valid value.")
                             else:
 
                                 # validates user input
@@ -96,14 +102,12 @@ def add(service):
                                     user_input = trans(user_input)
 
                                 saved_value = user_input
-                                body_values = body.get('values', False)
-                                if body_values:
+                                if body_values := body.get('values', False):
                                     body_values_keys = body['values'].keys()
-                                    if user_input in body_values_keys:
-                                        saved_value = body['values'][user_input]
-                                        credentials[new_key] = saved_value
-                                    else:
+                                    if user_input not in body_values_keys:
                                         raise Exception(body.get('error_msg', 'Oops something bad happened.'))
+                                    saved_value = body['values'][user_input]
+                                    credentials[new_key] = saved_value
                                 else:
                                     credentials[new_key] = user_input
 
@@ -147,8 +151,9 @@ def delete(service):
 
         if os.path.exists(env_full_path):
 
-            is_unique = check_for_service_uniqueness_name(service, env_filename)
-            if is_unique:
+            if is_unique := check_for_service_uniqueness_name(
+                service, env_filename
+            ):
                 click.secho("ERROR: service not found.\nHint: type 'mlapp services' to see all available services.",
                             fg='red')
             else:
@@ -161,13 +166,10 @@ def delete(service):
                             line_striped = line.strip()
 
                             if len(line_striped) == 0:
-                                if is_service_name_to_del_found:
-                                    continue
-                                else:
+                                if not is_service_name_to_del_found:
                                     output.write(line)
                                     is_service_name_to_del_found = False
-                                    continue
-
+                                continue
                             line_split = line_striped.split('_')
 
                             if len(line_split) > 0 and line_striped[0] != '#':
@@ -177,11 +179,12 @@ def delete(service):
                                     output.write(line)
                                 else:
                                     is_service_name_to_del_found = True
-                            else:
-                                if line_striped != '\n' and line_striped[0] == '#' and service.lower() in line_striped.lower():
-                                    continue
-                                else:
-                                    output.write(line)
+                            elif (
+                                line_striped == '\n'
+                                or line_striped[0] != '#'
+                                or service.lower() not in line_striped.lower()
+                            ):
+                                output.write(line)
 
                 # deletes original file
                 os.remove(env_full_path)
@@ -221,7 +224,7 @@ def show():
                     service_type = '_'.join(line_split[1:])
                     if service_name != '' and service_name[0] != '#' and MLApp.MLAPP_SERVICE_TYPE[1:] in service_type:
                         service_type = service_type.split('=')[1]
-                        services.add(tuple([service_name, service_type]))
+                        services.add((service_name, service_type))
 
         if len(services):
             click.echo(tabulate(list(services), headers=['Service Name', 'Service Type']))
@@ -237,7 +240,7 @@ def show_types():
     services_keys = add_services_options.keys()
     click.echo('Available services types:')
     for key in services_keys:
-        click.echo('[*] ' + key)
+        click.echo(f'[*] {key}')
 
 # if __name__ =='__main__':
 #     add('postgres')

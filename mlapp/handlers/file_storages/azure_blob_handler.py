@@ -63,8 +63,7 @@ class AzureBlobHandler(FileStorageInterface):
 
         try:
             blobs = self.block_blob_service.list_blob_names(bucket_name, prefix=prefix)
-            for blob in blobs:
-                files_names.append(blob)
+            files_names.extend(iter(blobs))
         except Exception as e:
             logging.error(e)
 

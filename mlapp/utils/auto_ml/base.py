@@ -68,7 +68,7 @@ class _AutoMLBase(ABC):
             parameters = {k: v.default for k, v in signature.parameters.items() if
                           v.default is not inspect.Parameter.empty}
             passed_parameters = {arg: kwargs[arg] for arg in f_args if arg in kwargs}
-            parameters.update(passed_parameters)
+            parameters |= passed_parameters
 
             missing_params = set(f_args) - set(parameters.keys())
             if len(missing_params) > 0:
@@ -120,10 +120,7 @@ class _AutoMLBase(ABC):
 
     @staticmethod
     def _get_feature_selection_name(method):
-        if isinstance(method, str):
-            return method
-        else:
-            return method.__class__.__name__
+        return method if isinstance(method, str) else method.__class__.__name__
 
     @abstractmethod
     def _scores_function(self, scores_summary_function, estimator_family):
@@ -137,12 +134,12 @@ class _AutoMLBase(ABC):
         self._validate_input(estimator_family, train, test, *args, **kwargs)
         # init params
         fixed_params, hyper_params, model_classes = \
-            self._construct_run_params(estimator_family, fixed_params, hyper_params, model_classes)
+                self._construct_run_params(estimator_family, fixed_params, hyper_params, model_classes)
 
         for feature_selection_method in self._get_feature_selection_methods(feature_selections):
             # feature selection
             selected_features, train_filtered, test_filtered = \
-                self._run_feature_selection(feature_selection_method, train, test, *args, **kwargs)
+                    self._run_feature_selection(feature_selection_method, train, test, *args, **kwargs)
 
             # run hyper param search per model
             hyper_params_searches = {}
@@ -168,12 +165,13 @@ class _AutoMLBase(ABC):
                         f"GridSearch/RandomSearch failed with '{model_key}' model with error: {str(err)}.")
 
             if len(hyper_params_searches.keys()) == 0:
-                raise AutoMLException(f"AutoML has no output! "
-                                      f"Check if you are running at least one model or whether all models failed.")
+                raise AutoMLException(
+                    'AutoML has no output! Check if you are running at least one model or whether all models failed.'
+                )
 
             # get cv results
             cv_results, best_model_key, best_model, best_cv_score, intercept, coefficients = \
-                self._get_cv_results(
+                    self._get_cv_results(
                     estimator_family, hyper_params_searches, selected_features, scoring, greater_is_better, *args,
                     **kwargs)
 

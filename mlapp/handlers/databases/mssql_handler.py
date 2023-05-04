@@ -13,7 +13,7 @@ class MssqlHandler(SQLAlchemyHandler):
 
         # preparing connection string
         connection_string = 'DRIVER={ODBC Driver 17 for SQL Server};' + \
-                            'SERVER={0};DATABASE={1};UID={2};PWD={3};Port={4};'.format(
+                                'SERVER={0};DATABASE={1};UID={2};PWD={3};Port={4};'.format(
                                 self.connections_parameters['hostname'],
                                 self.connections_parameters['database_name'],
                                 self.connections_parameters['user_id'],
@@ -21,4 +21,4 @@ class MssqlHandler(SQLAlchemyHandler):
                                 self.connections_parameters['port'])
         connection_string = urllib.parse.quote_plus(connection_string)
         self.query_placeholder = '?'
-        self.connection_string = "mssql+pyodbc:///?odbc_connect=%s" % connection_string
+        self.connection_string = f"mssql+pyodbc:///?odbc_connect={connection_string}"

@@ -20,7 +20,7 @@ def regression(train_y_predict, test_y_predict, train_y_real, test_y_real, *args
         train_y_actuals_ravel = np.ravel(train_y_real)
         test_y_actuals_ravel = np.ravel(test_y_real)
     except Exception as err:
-        raise ("Cannot run `np.ravel` on one of the inputs: " + str(err))
+        raise f"Cannot run `np.ravel` on one of the inputs: {str(err)}"
 
     return {
         'R2 (train set)': r2_score(train_y_actuals_ravel, train_y_predict_ravel),
@@ -174,16 +174,12 @@ def _get_mean_average_scaled_error(y_predictions, y_actuals, peak_dates=None):
         y_a = y_actuals[peak_dates_no_zero_index]
         y_p = y_predictions[peak_dates_no_zero_index]
 
-    # MASE
     if naive_model_error != 0:
-        mase = np.mean(np.abs(y_a - y_p) / naive_model_error)
-    # MAD/Mean Ratio (when naive_model_error is zero)
-    else:
-        y_actuals_mean = np.mean(y_a)
-        if y_actuals_mean == 0:
-            y_actuals_mean = y_actuals_mean + 1
-        mase = np.mean(np.abs(y_a - y_p) / y_actuals_mean)
-    return mase
+        return np.mean(np.abs(y_a - y_p) / naive_model_error)
+    y_actuals_mean = np.mean(y_a)
+    if y_actuals_mean == 0:
+        y_actuals_mean = y_actuals_mean + 1
+    return np.mean(np.abs(y_a - y_p) / y_actuals_mean)
 
 
 def _unbalanced_data(y_true, y_pred, beta=1, negative_label=None, return_value=None):

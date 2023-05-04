@@ -306,19 +306,17 @@ class ModelManager(_UserManager):
         :param prediction_type: String. (i.e TRAIN, TEST, FORECAST)
         :return: None.
         """
-        y_true = None
         prediction_type = prediction_type.upper()
-        if y is not None and len(y)>0:
-            y_true = y.copy()
-
+        y_true = y.copy() if y is not None and len(y)>0 else None
         # Check if y_hat has more than 1 dimension:
         if (y_hat is not None) and (len(y_hat.shape) > 1):
             y_hat = y_hat.reshape(1, len(y_hat))[0]
 
         # If y_true is a dataframe with only one column, use that column:
-        if isinstance(y_true, pd.core.frame.DataFrame):
-            if len(y_true.columns.to_list()):
-                y_true = y_true[y_true.columns[0]]
+        if isinstance(y_true, pd.core.frame.DataFrame) and len(
+            y_true.columns.to_list()
+        ):
+            y_true = y_true[y_true.columns[0]]
         try:
             prediction_type_int = self.prediction_types[prediction_type]
         except:

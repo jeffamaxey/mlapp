@@ -36,7 +36,7 @@ class PipelineManager(object):
         if isinstance(pipeline_input, list):
             self.stages = pipeline_input
         if isinstance(pipeline_input, str):
-            self.pipeline_name = " '" + pipeline_input + "'"
+            self.pipeline_name = f" '{pipeline_input}'"
             self.stages = settings.get('pipelines', {}).get(pipeline_input, [])
 
         self.config = config
@@ -58,8 +58,8 @@ class PipelineManager(object):
         :return: instance of the manager
         """
 
-        manager_file_name = self.asset_name + '_' + manager_type + '_manager'
-        manager_module = 'assets.' + self.asset_name + '.' + manager_file_name
+        manager_file_name = f'{self.asset_name}_{manager_type}_manager'
+        manager_module = f'assets.{self.asset_name}.{manager_file_name}'
         manager_module_path = os.path.join('assets', self.asset_name, f'{manager_file_name }.py')
         manager_class_name = ''.join(x.capitalize() or '_' for x in manager_file_name.split('_'))  # CamelCase
 
@@ -73,15 +73,18 @@ class PipelineManager(object):
             return manager_class(self.config.copy(), self.input_manager, self.output_manager, self.run_id)
 
         except Exception as e:
-            print("Couldn't import class of " + manager_type + " manager for model: " + self.asset_name)
-            print(">>> Please verify your " + manager_type +
-                  " manager file/directory/class names are in the following convention:")
+            print(
+                f"Couldn't import class of {manager_type} manager for model: {self.asset_name}"
+            )
+            print(
+                f">>> Please verify your {manager_type} manager file/directory/class names are in the following convention:"
+            )
             print(">>> Directory: {{asset_name}}")
             print(">>> File: {{asset_name}}_" + manager_type + "_manager.py")
             print(">>> Class: {{asset_name_capitalized}}" + manager_type.capitalize() + "Manager")
-            print(">>> Expected Directory name: " + self.asset_name)
-            print(">>> Expected Manager file name: " + manager_file_name)
-            print(">>> Expected Manager class name: " + manager_class_name)
+            print(f">>> Expected Directory name: {self.asset_name}")
+            print(f">>> Expected Manager file name: {manager_file_name}")
+            print(f">>> Expected Manager class name: {manager_class_name}")
             raise FrameworkException(str(e))
 
     def extract_stage(self, stage_name):
@@ -93,8 +96,8 @@ class PipelineManager(object):
         asset_name = ''.join(x.capitalize() or '_' for x in self.asset_name.split('_'))  # CamelCase
         if asset_name not in AVAILABLE_STAGES:
             raise PipelineManagerException(
-                "Missing decoration for your pipeline functions! Add '@pipeline' decorator above functions"
-                " you want to use in your asset '{}'s Data Manager and Model Manager.".format(asset_name))
+                f"Missing decoration for your pipeline functions! Add '@pipeline' decorator above functions you want to use in your asset '{asset_name}'s Data Manager and Model Manager."
+            )
 
         if stage_name not in AVAILABLE_STAGES[asset_name]:
             # exists in one if the base classes
@@ -102,8 +105,8 @@ class PipelineManager(object):
                 return AVAILABLE_STAGES[BASE_CLASS_NAME][stage_name]
 
             raise PipelineManagerException(
-                "Function '{}' was not found in your asset! Add '@pipeline' decorator above your '{}' "
-                "function if you want to use it in your pipeline.".format(stage_name, stage_name))
+                f"Function '{stage_name}' was not found in your asset! Add '@pipeline' decorator above your '{stage_name}' function if you want to use it in your pipeline."
+            )
 
         return AVAILABLE_STAGES[asset_name][stage_name]
 
@@ -124,18 +127,14 @@ class PipelineManager(object):
         :param arguments: input for the first stage in the pipeline, will be passed with *args
         :return: IOmanager of all the outputs to be stored
         """
-        print(">>>>>> Running pipeline" + self.pipeline_name + "...")
+        print(f">>>>>> Running pipeline{self.pipeline_name}...")
         prev_stage_name = ''
         for stage_name in self.stages:
             start_time = time.strftime(TIME_FORMAT)
-            print(">>>>>> Running stage: {}...".format(stage_name))
+            print(f">>>>>> Running stage: {stage_name}...")
 
             stage = self.extract_stage(stage_name)
-            if prev_stage_name:
-                args = self.state[prev_stage_name]
-            else:
-                args = arguments
-
+            args = self.state[prev_stage_name] if prev_stage_name else arguments
             # execute stage
             self.state[stage_name] = stage['function'](self.extract_manager_instance(stage['manager']), *args)
 
@@ -146,7 +145,7 @@ class PipelineManager(object):
 
             end_time = dt.datetime.strptime(
                 time.strftime(TIME_FORMAT), TIME_FORMAT) - dt.datetime.strptime(start_time, TIME_FORMAT)
-            print(">>>>>> It took me, {}.".format(end_time))
+            print(f">>>>>> It took me, {end_time}.")
 
         print(">>>>>> Finished running pipeline.")
         return self.output_manager
@@ -164,7 +163,9 @@ class pipeline:
             if MANAGER_TYPES[manager_type_key] in asset_name:
                 manager_type = manager_type_key
         if manager_type is None:
-            raise Exception("Wrong class name or placement of decorator! ('{}')".format(asset_name))
+            raise Exception(
+                f"Wrong class name or placement of decorator! ('{asset_name}')"
+            )
 
         asset_name = asset_name.replace('DataManager', '').replace('ModelManager', '')
 
@@ -172,8 +173,9 @@ class pipeline:
             AVAILABLE_STAGES[asset_name] = {}
 
         if name in AVAILABLE_STAGES[asset_name]:
-            raise Exception("Duplicate stage name '{}' for pipelines found in asset '{}'"
-                            .format(asset_name, name))
+            raise Exception(
+                f"Duplicate stage name '{asset_name}' for pipelines found in asset '{name}'"
+            )
 
         AVAILABLE_STAGES[asset_name][name] = {
             'function': self.fn,

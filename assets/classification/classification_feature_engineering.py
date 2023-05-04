@@ -179,7 +179,7 @@ class ClassificationFeatureEngineering(object):
                 categorical_values = categorical_values.astype(data_df.columns.dtype)
                 feature_output_name = feature_original_name + "_"
                 for val in categorical_values:
-                    feature_output_name += "_" + str(val)
+                    feature_output_name += f"_{str(val)}"
 
                 # adds combined feature to results DataFrame
                 results_df[feature_output_name] = combined_feature
@@ -216,7 +216,7 @@ class ClassificationFeatureEngineering(object):
         if not isinstance(data, pd.DataFrame):
             raise UnsupportedFileType("data type should be Dataframe")
 
-        if len(list(missing_values.keys())) > 0:
+        if list(missing_values.keys()):
             data.fillna(missing_values, inplace=True)
         else:
             missing_values = {}
@@ -229,7 +229,7 @@ class ClassificationFeatureEngineering(object):
                 else:
                     filling_missing_value = default_filling
 
-                if filling_missing_value in methods.keys():
+                if filling_missing_value in methods:
                     filling_missing_value = filling_missing_value.lower()
                     val = methods[filling_missing_value](data[feature_key])
                     data[feature_key].fillna(val, inplace=True)
@@ -268,9 +268,9 @@ class ClassificationFeatureEngineering(object):
             for feature_transformation_method in feature_transformation_methods:
                 data[feature_key] = eval(feature_transformation_method)(data[feature_key])
 
-            # applying dummies
-            feature_dummies_flag = features_handling[feature_key].get("dummies", False)
-            if feature_dummies_flag:
+            if feature_dummies_flag := features_handling[feature_key].get(
+                "dummies", False
+            ):
                 dummies_df = pd.get_dummies(data[feature_key], dummy_na=False)
                 dummies_df['index'] = data.index.values
                 dummies_df = dummies_df.set_index('index')
@@ -323,9 +323,7 @@ class ClassificationFeatureEngineering(object):
                             return "DATETIME", date_format
                         except:
                             continue
-                    return "TEXT", None
-                else:
-                    return "TEXT", None
+                return "TEXT", None
         else:
             return "TEXT", None
 

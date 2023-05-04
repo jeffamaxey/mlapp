@@ -39,25 +39,24 @@ def setup(force):
             directory = file_options.get('dir', 'root')
             if directory == 'root':
                 full_path = os.path.join(os.getcwd(), file_name)
+            elif os.path.isdir(directory):
+                full_path = os.path.join(os.getcwd(), directory, file_name)
             else:
-                if os.path.isdir(directory):
-                    full_path = os.path.join(os.getcwd(), directory, file_name)
-                else:
-                    continue
+                continue
             if os.path.exists(full_path):
                 is_initiated = True
                 break
 
         if is_initiated:
             click.secho(
-                "ERROR: " + file_name + " already exists.\nHint: you can use 'mlapp sm setup --force' option to force setup (caution: force may override exsiting files).",
-                fg='red')
+                f"ERROR: {file_name}"
+                + " already exists.\nHint: you can use 'mlapp sm setup --force' option to force setup (caution: force may override exsiting files).",
+                fg='red',
+            )
             return
 
-        # setup azure machine learning deployment files
-        _setup_sm()
-    else:
-        _setup_sm()
+    # setup azure machine learning deployment files
+    _setup_sm()
 
 
 def _setup_sm(skip_dockerignore=False):
@@ -86,9 +85,10 @@ def _setup_sm(skip_dockerignore=False):
         copyfile(src, dst)
 
     # creates dockerignore
-    if not skip_dockerignore:
-        if not os.path.exists(os.path.join(os.getcwd(), '.dockerignore')):
-            create_file('.dockerignore', content=dockerignore_file)
+    if not skip_dockerignore and not os.path.exists(
+        os.path.join(os.getcwd(), '.dockerignore')
+    ):
+        create_file('.dockerignore', content=dockerignore_file)
 
 
 @commands.command("run-training-job", help=cli_sm_help.get('run_training_job'))

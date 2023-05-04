@@ -58,9 +58,9 @@ class RabbitMQHandler(MessageQueueInterface):
                 channel.basic_publish(exchange='', routing_key=queue_name, body=body)
                 break
             except pika.exceptions.AMQPChannelError as err:
-                print("Caught a channel error: {}, stopping...".format(err))
+                print(f"Caught a channel error: {err}, stopping...")
                 break
-                # recover on all other connection errors
+                        # recover on all other connection errors
             except pika.exceptions.AMQPConnectionError:
                 print("Connection was closed, retrying...")
                 time.sleep(1)
@@ -94,7 +94,7 @@ class RabbitMQHandler(MessageQueueInterface):
                     chan.queue_declare(queue=str(queue), durable=True)
                     chan.basic_qos(prefetch_count=1)
                     chan.basic_consume(str(queue), on_message_callback)
-                    print('[*] Waiting for messages in ' + str(queue) + '. To exit press CTRL+C')
+                    print(f'[*] Waiting for messages in {str(queue)}. To exit press CTRL+C')
 
                 # listening to queues
                 try:
@@ -105,9 +105,9 @@ class RabbitMQHandler(MessageQueueInterface):
                     break
 
             except pika.exceptions.AMQPChannelError as err:
-                print("Caught a channel error: {}, stopping...".format(err))
+                print(f"Caught a channel error: {err}, stopping...")
                 break
-                # recover on all other connection errors
+                        # recover on all other connection errors
             except pika.exceptions.AMQPConnectionError:
                 print("Connection was closed, retrying...")
                 time.sleep(1)

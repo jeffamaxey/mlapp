@@ -10,14 +10,14 @@ def load_config_from_string(config_str):
     except AttributeError as attrError:
         pass  # message body is string and not bytes
 
-    print("Hello, The following task is consumed:   " + str(config_str))
+    print(f"Hello, The following task is consumed:   {str(config_str)}")
     try:
         config_str = json.loads(literal_eval(config_str))
     except Exception as first_error:
         try:
             config_str = json.loads(config_str)
         except Exception as second_error:
-            print("Error response: " + str('Message not in JSON format'))
+            print("Error response: " + 'Message not in JSON format')
             raise second_error
 
     return config_str
@@ -29,11 +29,10 @@ def get_model_register_name(run_id):
 
 def tag_and_log_run(config):
     run = Run.get_context()
-    pipeline_configs = []
-
-    for job in config.get('pipelines_configs', [{}]):
-        pipeline_configs.append(job.get('job_settings', {}))
-
+    pipeline_configs = [
+        job.get('job_settings', {})
+        for job in config.get('pipelines_configs', [{}])
+    ]
     if 'flow_config' in config:
         pipeline_configs.append(config['flow_config'].get('job_settings', {}))
 

@@ -97,6 +97,3 @@ if aml_commands is not None:
 
 if sm_commands is not None:
     cli.add_command(sm_commands)
-
-if __name__ == "__main__":
-    pass
